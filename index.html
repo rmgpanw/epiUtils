@@ -49,7 +49,7 @@
 <div class="page-header"><h1 id="epiutils">epiUtils<a class="anchor" aria-label="anchor" href="#epiutils"></a>
 </h1></div>
 <!-- badges: start -->
-<!-- badges: end -->
+
 <p><code>epiUtils</code> provides essential tools for epidemiological analysis, including age-standardised rate calculations and person-years computation for cohort studies. The package implements established epidemiological methods with modern R practices, comprehensive validation, and built-in standard population data.</p>
 <div class="section level2">
 <h2 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
@@ -61,10 +61,6 @@
 <strong>Person-Years Calculation</strong>: Compute person-years by age strata with automatic age-transition handling</li>
 <li>
 <strong>WHO Standard Population</strong>: Built-in WHO 2000-2025 World Standard Population data</li>
-<li>
-<strong>Robust Validation</strong>: Validated against <code>epitools</code> using authoritative epidemiological datasets</li>
-<li>
-<strong>Smart Warnings</strong>: Helpful guidance for small case counts and data quality issues</li>
 </ul>
 </div>
 <div class="section level2">
@@ -150,7 +146,7 @@
 <div class="section level3">
 <h3 id="who-standard-population">WHO Standard Population<a class="anchor" aria-label="anchor" href="#who-standard-population"></a>
 </h3>
-<p>Access the built-in WHO 2000-2025 World Standard Population:</p>
+<p>Access the built-in <a href="https://seer.cancer.gov/stdpopulations/world.who.html" class="external-link">WHO 2000-2025 World Standard Population</a>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load WHO standard population</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"who_2000_2025_standard_population"</span><span class="op">)</span></span>
@@ -177,7 +173,7 @@
 <div class="section level3">
 <h3 id="smart-case-count-handling">Smart Case Count Handling<a class="anchor" aria-label="anchor" href="#smart-case-count-handling"></a>
 </h3>
-<p>The package provides intelligent warnings for small case counts while allowing users to make informed decisions:</p>
+<p>Warnings are raised for small case counts while allowing users to make informed decisions:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Data with small case counts</span></span>
 <span><span class="va">small_counts_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -225,33 +221,6 @@
 </div>
 </div>
 <div class="section level2">
-<h2 id="validation-and-reliability">Validation and Reliability<a class="anchor" aria-label="anchor" href="#validation-and-reliability"></a>
-</h2>
-<ul>
-<li>
-<strong>Validated against epitools</strong>: Results match <code><a href="https://rdrr.io/pkg/epitools/man/ageadjust.direct.html" class="external-link">epitools::ageadjust.direct()</a></code> exactly</li>
-<li>
-<strong>Authoritative test data</strong>: Uses Fleiss (1981) epidemiological datasets</li>
-<li>
-<strong>Comprehensive testing</strong>: 50+ tests covering edge cases and warning scenarios</li>
-<li>
-<strong>Mathematical rigor</strong>: Implements gamma distribution method for confidence intervals</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
-</h2>
-<p>For detailed examples and advanced usage, see:</p>
-<ul>
-<li>
-<code><a href="articles/epiUtils.html">vignette("epiUtils")</a></code> - Comprehensive tutorial with visualizations</li>
-<li>
-<code><a href="reference/calculate_asr_direct.html">?calculate_asr_direct</a></code> - Detailed function documentation</li>
-<li>
-<code><a href="reference/calculate_person_years_by_age_strata.html">?calculate_person_years_by_age_strata</a></code> - Person-years calculation guide</li>
-</ul>
-</div>
-<div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
 <p>When using <code>epiUtils</code> in publications, please cite:</p>
@@ -288,7 +257,13 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://app.codecov.io/gh/rmgpanw/epiUtils" class="external-link"><img src="https://codecov.io/gh/rmgpanw/epiUtils/graph/badge.svg" alt="Codecov test coverage"></a></li>
+<li><a href="https://github.com/rmgpanw/epiUtils/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/rmgpanw/epiUtils/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>
