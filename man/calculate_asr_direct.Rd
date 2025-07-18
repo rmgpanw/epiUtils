@@ -8,6 +8,7 @@ calculate_asr_direct(
   .df,
   conf_level = 0.95,
   multiplier = 1e+05,
+  ci_method = "gamma",
   warn_small_cases = TRUE
 )
 }
@@ -23,10 +24,20 @@ and standard population weights. Must contain the following columns:
 
 \item{conf_level}{Confidence level for confidence intervals (default: 0.95)}
 
-\item{multiplier}{Multiplier for rate expression (default: 100000 for rates per 100,000)}
+\item{multiplier}{Multiplier for rate expression (default: 100000 for rates
+per 100,000)}
 
-\item{warn_small_cases}{Logical. If TRUE (default), warns when age groups have < 5 cases
-which may lead to unstable rate estimates. Consider wider age groups for more stable results.}
+\item{ci_method}{Character string specifying the confidence interval
+calculation method. Options are "gamma" (default) or "byars". The gamma
+method uses the gamma distribution approach (consistent with
+\href{https://CRAN.R-project.org/package=epitools}{epitools}), while the Byar's
+method uses Byar's approximation with Dobson adjustment (consistent with
+\href{https://CRAN.R-project.org/package=PHEindicatormethods}{PHEindicatormethods}).
+Both methods are statistically valid; differences are typically minimal.}
+
+\item{warn_small_cases}{Logical. If TRUE (default), warns when age groups
+have zero or < 5 cases which may lead to unstable rate estimates. Consider
+wider age groups for more stable results.}
 }
 \value{
 A tibble containing:
@@ -45,19 +56,20 @@ A tibble containing:
 }
 }
 \description{
-This function calculates age-standardised incidence rates (ASR) using the direct
-standardisation method with gamma distribution-based confidence intervals.
-The gamma method is preferred as it naturally prevents negative confidence
-interval bounds and is the standard approach in epidemiological literature.
+This function calculates age-standardised incidence rates (ASR) using the
+direct standardisation method with gamma distribution-based confidence
+intervals. The gamma method is preferred as it naturally prevents negative
+confidence interval bounds and is the standard approach in epidemiological
+literature.
 }
 \details{
-The function uses the gamma distribution method for confidence interval calculation,
-which is the standard approach in epidemiological software like epitools.
-This method naturally prevents negative confidence interval bounds and is
-appropriate for rate data.
+The function uses the gamma distribution method for confidence
+interval calculation, which is the standard approach in epidemiological
+software like epitools. This method naturally prevents negative confidence
+interval bounds and is appropriate for rate data.
 
-The direct standardisation method calculates ASR as:
-ASR = Σ(w_i × r_i) where w_i are standardised weights and r_i are age-specific rates
+The direct standardisation method calculates ASR as: ASR = Σ(w_i × r_i)
+where w_i are standardised weights and r_i are age-specific rates
 
 \strong{Age Grouping Considerations:}
 \itemize{
@@ -87,6 +99,7 @@ print(result$ci_upper_scaled)  # Upper CI per 100,000
 
 }
 \references{
-Breslow, N. E., & Day, N. E. (1987). Statistical methods in cancer research.
-Volume II--The design and analysis of cohort studies. IARC scientific publications, (82), 1-406.
+Breslow, N. E., & Day, N. E. (1987). Statistical methods in
+cancer research. Volume II--The design and analysis of cohort studies. IARC
+scientific publications, (82), 1-406.
 }

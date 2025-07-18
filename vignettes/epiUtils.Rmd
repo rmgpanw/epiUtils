@@ -155,7 +155,7 @@ print(asr_result$age_specific_data[[1]])
 
 ## Handling Small Case Counts
 
-The `calculate_asr_direct()` function includes built-in warnings for small case counts, which help users make informed decisions about age grouping strategies.
+The `calculate_asr_direct()` function includes built-in warnings for small case counts, which help users make informed decisions about age grouping strategies. The warnings are raised regardless of the confidence interval method used.
 
 ```{r small-cases-demo}
 # Create example data with small case counts to demonstrate warnings
@@ -180,6 +180,70 @@ result_no_warnings <- calculate_asr_direct(small_cases_data, warn_small_cases = 
 # Results are identical regardless of warning setting
 print(paste("ASR:", round(result_with_warnings$asr_scaled, 2), "per 100,000"))
 ```
+
+## Confidence Interval Methods
+
+The function supports two methods for calculating confidence intervals, controlled by the `ci_method` parameter. Understanding the differences helps you choose the most appropriate method for your analysis.
+
+### Method Overview
+
+1. **"gamma"** (default): Uses gamma distribution approach
+2. **"byars"**: Uses Byar's approximation with Dobson adjustment
+
+### Technical Differences
+
+**Gamma Method:**
+- Based on the gamma distribution, which naturally models positive rate data
+- Automatically ensures confidence intervals are always positive (cannot be negative)
+- Particularly robust with small case counts and low rates
+- Consistent with `epitools::ageadjust.direct()`
+- Uses shape and scale parameters derived from the observed data
+
+**Byar's/Dobson Method:**
+- Traditional epidemiological approach dating to the 1970s-80s
+- Uses normal approximation with continuity corrections for larger counts
+- Uses exact Poisson-based intervals for very small counts (<10 total cases)
+- Consistent with `PHEindicatormethods::calculate_dsr()`
+- May occasionally produce slightly wider intervals with very small counts
+
+```{r ci-methods-demo}
+# Compare confidence interval methods using the same data
+print("Gamma method (default):")
+result_gamma <- calculate_asr_direct(small_cases_data, warn_small_cases = FALSE)
+print(paste("ASR:", round(result_gamma$asr_scaled, 2), 
+            "95% CI:", round(result_gamma$ci_lower_scaled, 2), "-", 
+            round(result_gamma$ci_upper_scaled, 2)))
+
+print("Byar's/Dobson method:")
+result_byars <- calculate_asr_direct(small_cases_data, ci_method = "byars", warn_small_cases = FALSE)
+print(paste("ASR:", round(result_byars$asr_scaled, 2), 
+            "95% CI:", round(result_byars$ci_lower_scaled, 2), "-", 
+            round(result_byars$ci_upper_scaled, 2)))
+
+# The point estimates are identical, but confidence intervals may differ
+print("Point estimates are identical:", 
+      round(result_gamma$asr_scaled, 10) == round(result_byars$asr_scaled, 10))
+
+# Calculate the difference in CI width
+gamma_width <- result_gamma$ci_upper_scaled - result_gamma$ci_lower_scaled
+byars_width <- result_byars$ci_upper_scaled - result_byars$ci_lower_scaled
+print(paste("CI width difference:", round(abs(gamma_width - byars_width), 2)))
+```
+
+### Practical Implications
+
+**When results differ:**
+- Differences are typically small for moderate to large case counts (>20 total cases)
+- More noticeable differences may occur with very small case counts or low rates
+- The gamma method tends to be slightly more conservative (wider intervals) with extremely small counts
+- Both methods are statistically valid and widely accepted
+
+**Method selection guidance:**
+- Use **gamma** (default) for most analyses, especially with small case counts or low rates
+- Use **byars** when:
+  - Comparing with historical studies that used Byar's method
+  - Institutional requirements specify this traditional approach
+- Both methods converge to similar results as sample sizes increase
 
 # Example 3: Using WHO Standard Population Directly
 
@@ -290,7 +354,8 @@ print(p3)
 ## `calculate_asr_direct()`
 
 - Calculates age-standardised rates using direct standardisation
-- Uses gamma distribution for confidence intervals
+- Supports two confidence interval methods: gamma distribution (default) and Byar's/Dobson approximation
+- Includes smart warnings for small/zero case counts with user control
 - Requires data with columns: `age_group`, `events`, `person_years`, `standard_pop`
 - Returns comprehensive results including crude rates, ASRs, and confidence intervals
 

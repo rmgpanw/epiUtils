@@ -19,7 +19,7 @@ validation, and built-in standard population data.
 ## Key Features
 
 - **Age-Standardised Rates**: Calculate directly standardised rates with
-  gamma-based confidence intervals
+  gamma or Byar’s confidence intervals
 - **Person-Years Calculation**: Compute person-years by age strata with
   automatic age-transition handling
 - **WHO Standard Population**: Built-in WHO 2000-2025 World Standard
@@ -55,10 +55,10 @@ cancer_data <- data.frame(
 
 # Calculate age-standardised rates
 result <- calculate_asr_direct(cancer_data)
-#> Warning: ! Found 1 age group with < 5 cases:
-#> • "0-19 (2 cases)"
-#> ℹ Small case counts may produce unstable rate estimates
-#> ℹ Consider wider age groups for more stable results
+#> Warning: ! Found age groups with small/zero case counts:
+#> • < 5 cases: 0-19 (2 cases)
+#> ℹ Small and zero case counts may produce unstable rate estimates
+#> ℹ Consider wider age groups, longer follow-up, or data quality checks
 
 # View results
 cat("Age-Standardised Rate:", round(result$asr_scaled, 1), "per 100,000\n")
@@ -138,8 +138,7 @@ head(who_2000_2025_standard_population)
 
 ### Smart Case Count Handling
 
-Warnings are raised for small case counts while allowing users to make
-informed decisions:
+Warnings are raised for small case counts:
 
 ``` r
 # Data with small case counts
@@ -152,16 +151,30 @@ small_counts_data <- data.frame(
 
 # Calculate with warnings (default)
 result_with_warnings <- calculate_asr_direct(small_counts_data)
-#> Warning: ! Found 1 age group with < 5 cases:
-#> • "20-40 (3 cases)"
-#> ℹ Small case counts may produce unstable rate estimates
-#> ℹ Consider wider age groups for more stable results
-#> ℹ Found 1 age group with zero cases:
-#> • "0-20"
-#> ℹ Zero cases are included in ASR calculation (rate = 0 for these groups)
+#> Warning: ! Found age groups with small/zero case counts:
+#> • zero cases: 0-20 and < 5 cases: 20-40 (3 cases)
+#> ℹ Small and zero case counts may produce unstable rate estimates
+#> ℹ Consider wider age groups, longer follow-up, or data quality checks
 
 # Calculate silently when appropriate
 result_silent <- calculate_asr_direct(small_counts_data, warn_small_cases = FALSE)
+```
+
+### Confidence Interval Methods
+
+Choose between two confidence interval calculation methods:
+
+``` r
+# Gamma method (default) - more conservative for small counts and low rates
+result_gamma <- calculate_asr_direct(small_counts_data, warn_small_cases = FALSE)
+
+# Byar's/Dobson method - traditional epidemiological approach  
+result_byars <- calculate_asr_direct(small_counts_data, ci_method = "byars", warn_small_cases = FALSE)
+
+cat("Gamma CI:", round(result_gamma$ci_lower_scaled, 1), "-", round(result_gamma$ci_upper_scaled, 1), "\n")
+#> Gamma CI: 22.5 - 60.5
+cat("Byar's CI:", round(result_byars$ci_lower_scaled, 1), "-", round(result_byars$ci_upper_scaled, 1), "\n")
+#> Byar's CI: 19.9 - 55.9
 ```
 
 ### Integration with Standard Populations

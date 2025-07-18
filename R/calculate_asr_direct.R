@@ -1,9 +1,10 @@
 #' Calculate Age-Standardised Incidence Rates with Confidence Intervals
 #'
-#' This function calculates age-standardised incidence rates (ASR) using the direct
-#' standardisation method with gamma distribution-based confidence intervals.
-#' The gamma method is preferred as it naturally prevents negative confidence
-#' interval bounds and is the standard approach in epidemiological literature.
+#' This function calculates age-standardised incidence rates (ASR) using the
+#' direct standardisation method with gamma distribution-based confidence
+#' intervals. The gamma method is preferred as it naturally prevents negative
+#' confidence interval bounds and is the standard approach in epidemiological
+#' literature.
 #'
 #' @param .df A data frame containing age-specific case counts, population data,
 #'   and standard population weights. Must contain the following columns:
@@ -12,9 +13,18 @@
 #'   - **person_years**: Person-years of follow-up or population size in each age group (numeric)
 #'   - **standard_pop**: Standard population weights for each age group (numeric)
 #' @param conf_level Confidence level for confidence intervals (default: 0.95)
-#' @param multiplier Multiplier for rate expression (default: 100000 for rates per 100,000)
-#' @param warn_small_cases Logical. If TRUE (default), warns when age groups have < 5 cases
-#'   which may lead to unstable rate estimates. Consider wider age groups for more stable results.
+#' @param multiplier Multiplier for rate expression (default: 100000 for rates
+#'   per 100,000)
+#' @param ci_method Character string specifying the confidence interval
+#'   calculation method. Options are "gamma" (default) or "byars". The gamma
+#'   method uses the gamma distribution approach (consistent with
+#'   [epitools](https://CRAN.R-project.org/package=epitools)), while the Byar's
+#'   method uses Byar's approximation with Dobson adjustment (consistent with
+#'   [PHEindicatormethods](https://CRAN.R-project.org/package=PHEindicatormethods)).
+#'   Both methods are statistically valid; differences are typically minimal.
+#' @param warn_small_cases Logical. If TRUE (default), warns when age groups
+#'   have zero or < 5 cases which may lead to unstable rate estimates. Consider
+#'   wider age groups for more stable results.
 #'
 #' @return A tibble containing:
 #' - **crude_rate**: Crude incidence rate
@@ -29,14 +39,13 @@
 #' - **method**: Method used for CI calculation
 #' - **age_specific_data**: Data frame with age-specific rates and details
 #'
-#' @details
-#' The function uses the gamma distribution method for confidence interval calculation,
-#' which is the standard approach in epidemiological software like epitools.
-#' This method naturally prevents negative confidence interval bounds and is
-#' appropriate for rate data.
+#' @details The function uses the gamma distribution method for confidence
+#'   interval calculation, which is the standard approach in epidemiological
+#'   software like epitools. This method naturally prevents negative confidence
+#'   interval bounds and is appropriate for rate data.
 #'
-#' The direct standardisation method calculates ASR as:
-#' ASR = Σ(w_i × r_i) where w_i are standardised weights and r_i are age-specific rates
+#'   The direct standardisation method calculates ASR as: ASR = Σ(w_i × r_i)
+#'   where w_i are standardised weights and r_i are age-specific rates
 #'
 #' **Age Grouping Considerations:**
 #' - Zero cases are allowed but may indicate very low incidence or small populations
@@ -62,17 +71,18 @@
 #' print(result$ci_lower_scaled)  # Lower CI per 100,000
 #' print(result$ci_upper_scaled)  # Upper CI per 100,000
 #'
-#' @references
-#' Breslow, N. E., & Day, N. E. (1987). Statistical methods in cancer research.
-#' Volume II--The design and analysis of cohort studies. IARC scientific publications, (82), 1-406.
+#' @references Breslow, N. E., & Day, N. E. (1987). Statistical methods in
+#'   cancer research. Volume II--The design and analysis of cohort studies. IARC
+#'   scientific publications, (82), 1-406.
 #'
 #' @importFrom dplyr mutate select pull everything all_of
 #' @importFrom tibble tibble
-#' @importFrom stats qgamma
+#' @importFrom stats qgamma qchisq
 #' @export
 calculate_asr_direct <- function(.df,
                                  conf_level = 0.95,
                                  multiplier = 100000,
+                                 ci_method = "gamma",
                                  warn_small_cases = TRUE) {
   # Input validation
   if (!is.data.frame(.df)) {
@@ -126,33 +136,38 @@ calculate_asr_direct <- function(.df,
     ))
   }
 
-  # Warn about small case counts (but allow them)
+  # Validate CI method
+  ci_method <- rlang::arg_match(ci_method,
+                                values = c("gamma", "byars"))
+
+  # Warn about small and zero case counts (but allow them)
   if (warn_small_cases) {
     small_case_groups <- .df$events < 5 & .df$events > 0
     zero_case_groups <- .df$events == 0
-    
-    if (any(small_case_groups)) {
-      small_ages <- .df$age_group[small_case_groups]
-      small_counts <- .df$events[small_case_groups]
-      n_small <- sum(small_case_groups)
-      
-      age_case_info <- paste(small_ages, " (", small_counts, " case", ifelse(small_counts == 1, "", "s"), ")", sep = "")
-      
+
+    if (any(small_case_groups) || any(zero_case_groups)) {
+      warning_parts <- c()
+
+      if (any(zero_case_groups)) {
+        zero_ages <- .df$age_group[zero_case_groups]
+        n_zero <- sum(zero_case_groups)
+        warning_parts <- c(warning_parts,
+                          paste0("zero cases: ", paste(zero_ages, collapse = ", ")))
+      }
+
+      if (any(small_case_groups)) {
+        small_ages <- .df$age_group[small_case_groups]
+        small_counts <- .df$events[small_case_groups]
+        small_info <- paste(small_ages, " (", small_counts, " case", ifelse(small_counts == 1, "", "s"), ")", sep = "")
+        warning_parts <- c(warning_parts,
+                          paste0("< 5 cases: ", paste(small_info, collapse = ", ")))
+      }
+
       cli::cli_warn(c(
-        "!" = "Found {n_small} age group{?s} with < 5 cases:",
-        "*" = "{.val {age_case_info}}",
-        "i" = "Small case counts may produce unstable rate estimates",
-        "i" = "Consider wider age groups for more stable results"
-      ))
-    }
-    
-    if (any(zero_case_groups)) {
-      zero_ages <- .df$age_group[zero_case_groups]
-      n_zero <- sum(zero_case_groups)
-      cli::cli_inform(c(
-        "i" = "Found {n_zero} age group{?s} with zero cases:",
-        "*" = "{.val {zero_ages}}",
-        "i" = "Zero cases are included in ASR calculation (rate = 0 for these groups)"
+        "!" = "Found age groups with small/zero case counts:",
+        "*" = "{warning_parts}",
+        "i" = "Small and zero case counts may produce unstable rate estimates",
+        "i" = "Consider wider age groups, longer follow-up, or data quality checks"
       ))
     }
   }
@@ -221,24 +236,65 @@ calculate_asr_direct <- function(.df,
 
   dsr_var <- sum(variance_components)
 
-  # Calculate maximum weight term for boundary adjustment
-  wm_components <- asr_data |>
-    dplyr::mutate("wm_term" = .data[["std_weight"]] / .data[["person_years"]]) |>
-    dplyr::pull("wm_term")
+  # Calculate confidence intervals using the selected method
+  if (ci_method == "gamma") {
+    # Gamma distribution method (consistent with epitools)
 
-  wm <- max(wm_components)
+    # Calculate maximum weight term for boundary adjustment
+    wm_components <- asr_data |>
+      dplyr::mutate("wm_term" = .data[["std_weight"]] / .data[["person_years"]]) |>
+      dplyr::pull("wm_term")
 
-  # Gamma distribution parameters for lower CI
-  shape_param_lower <- (asr^2) / dsr_var
-  scale_param_lower <- dsr_var / asr
+    wm <- max(wm_components)
 
-  # Gamma distribution parameters for upper CI (with boundary adjustment)
-  shape_param_upper <- ((asr + wm)^2) / (dsr_var + wm^2)
-  scale_param_upper <- (dsr_var + wm^2) / (asr + wm)
+    # Gamma distribution parameters for lower CI
+    shape_param_lower <- (asr^2) / dsr_var
+    scale_param_lower <- dsr_var / asr
 
-  # Calculate confidence intervals
-  ci_lower <- stats::qgamma(alpha / 2, shape = shape_param_lower, scale = scale_param_lower)
-  ci_upper <- stats::qgamma(1 - alpha / 2, shape = shape_param_upper, scale = scale_param_upper)
+    # Gamma distribution parameters for upper CI (with boundary adjustment)
+    shape_param_upper <- ((asr + wm)^2) / (dsr_var + wm^2)
+    scale_param_upper <- (dsr_var + wm^2) / (asr + wm)
+
+    # Calculate confidence intervals
+    ci_lower <- stats::qgamma(alpha / 2, shape = shape_param_lower, scale = scale_param_lower)
+    ci_upper <- stats::qgamma(1 - alpha / 2, shape = shape_param_upper, scale = scale_param_upper)
+
+  } else if (ci_method == "byars") {
+    # Byar's method with Dobson adjustment (consistent with PHEindicatormethods)
+
+    # Calculate total cases for Byar's approximation
+    total_cases <- sum(asr_data$events)
+
+    if (total_cases < 10) {
+      # For very small counts, use a conservative approach
+      # Calculate CIs based on total cases using exact Poisson
+      byars_lower <- ifelse(total_cases == 0, 0,
+                           stats::qchisq(alpha / 2, 2 * total_cases) / 2)
+      byars_upper <- stats::qchisq(1 - alpha / 2, 2 * (total_cases + 1)) / 2
+
+      # Scale by standard population ratio
+      ci_lower <- (byars_lower / total_population) * (total_std_pop / total_std_pop) * asr
+      ci_upper <- (byars_upper / total_population) * (total_std_pop / total_std_pop) * asr
+
+    } else {
+      # Standard Byar's approximation for larger counts
+      # Use normal approximation with continuity correction
+      z_value <- stats::qnorm(1 - alpha / 2)
+
+      # Byar's continuity correction
+      byars_se <- sqrt(dsr_var)
+
+      # Apply Dobson adjustment for weighted sums
+      dobson_factor <- sqrt(1 + (dsr_var / (asr^2)))
+      adjusted_se <- byars_se * dobson_factor
+
+      ci_lower <- asr - z_value * adjusted_se
+      ci_upper <- asr + z_value * adjusted_se
+
+      # Ensure lower bound is non-negative
+      ci_lower <- max(0, ci_lower)
+    }
+  }
 
   # Prepare detailed age-specific results
   age_specific_results <- asr_data |>

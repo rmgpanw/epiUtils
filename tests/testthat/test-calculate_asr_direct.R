@@ -1,3 +1,5 @@
+# Tests comparing with epitools::ageadjust.direct() ----
+
 test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
 
   # Data from Fleiss, 1981, p. 249
@@ -123,7 +125,7 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
 })
 
 test_that("calculate_asr_direct warnings are triggered correctly", {
-  
+
   # Set up test data (same as main validation test)
   population_raw <- c(230061, 329449, 114920, 39487, 14208, 3052,
                       72202, 326701, 208667, 83228, 28466, 5375,
@@ -147,7 +149,7 @@ test_that("calculate_asr_direct warnings are triggered correctly", {
                                          c("1", "2", "3", "4", "5+", "Total")))
 
   standard_pop_epitools <- apply(population_matrix[, -6], 1, mean)
-  
+
   prep_data_for_epiutils <- function(cases_vec, pop_vec, std_pop_vec) {
     data.frame(
       age_group = rownames(population_matrix)[1:6],
@@ -156,53 +158,53 @@ test_that("calculate_asr_direct warnings are triggered correctly", {
       standard_pop = std_pop_vec
     )
   }
-  
+
   # Test data from Birth Order 5+ which has zero cases in "Under 20" group
   df5p <- prep_data_for_epiutils(count_matrix[, 5], population_matrix[, 5], standard_pop_epitools)
-  
-  # Should warn about zero cases (informational message)
-  expect_message(
+
+  # Should warn about zero cases
+  expect_warning(
     calculate_asr_direct(df5p, multiplier = 1, warn_small_cases = TRUE),
-    "Found 1 age group.*zero cases.*Under 20"
+    "Found age groups with small/zero case counts"
   )
-  
+
   # Test data from Birth Order 3 which has 3 cases in "Under 20" (small case count)
   df3 <- prep_data_for_epiutils(count_matrix[, 3], population_matrix[, 3], standard_pop_epitools)
-  
+
   # Should warn about small case counts
   expect_warning(
     calculate_asr_direct(df3, multiplier = 1, warn_small_cases = TRUE),
-    "Found 1 age group.*< 5 cases.*Under 20.*3 case"
+    "Found age groups with small/zero case counts"
   )
-  
+
   # Should include guidance message
   expect_warning(
     calculate_asr_direct(df3, multiplier = 1, warn_small_cases = TRUE),
     "Consider wider age groups"
   )
-  
+
   # Test data from Birth Order 4 which has 1 case in "Under 20" (small case count)
   df4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
-  
-  # Should warn about small case counts with singular "case"
+
+  # Should warn about small case counts
   expect_warning(
     calculate_asr_direct(df4, multiplier = 1, warn_small_cases = TRUE),
-    "Found 1 age group.*< 5 cases.*Under 20.*1 case"
+    "Found age groups with small/zero case counts"
   )
-  
+
   # When warn_small_cases = FALSE, no warnings should be produced
   expect_silent(
     calculate_asr_direct(df5p, multiplier = 1, warn_small_cases = FALSE)
   )
-  
+
   expect_silent(
     calculate_asr_direct(df3, multiplier = 1, warn_small_cases = FALSE)
   )
-  
+
   # Results should be identical regardless of warning setting
-  result_with_warnings <- calculate_asr_direct(df3, multiplier = 1, warn_small_cases = TRUE)
+  result_with_warnings <- suppressWarnings(calculate_asr_direct(df3, multiplier = 1, warn_small_cases = TRUE))
   result_without_warnings <- calculate_asr_direct(df3, multiplier = 1, warn_small_cases = FALSE)
-  
+
   expect_equal(result_with_warnings$asr, result_without_warnings$asr)
   expect_equal(result_with_warnings$ci_lower, result_without_warnings$ci_lower)
   expect_equal(result_with_warnings$ci_upper, result_without_warnings$ci_upper)
@@ -210,10 +212,10 @@ test_that("calculate_asr_direct warnings are triggered correctly", {
 
 # Tests comparing with PHEindicatormethods::calculate_dsr() ----
 test_that("calculate_asr_direct() results match PHEindicatormethods::calculate_dsr()", {
-  
+
   # Skip if PHEindicatormethods is not available
   skip_if_not_installed("PHEindicatormethods")
-  
+
   # Set up the same test data as in the main epitools comparison test
   population_raw <- c(230061, 329449, 114920, 39487, 14208, 3052,
                       72202, 326701, 208667, 83228, 28466, 5375,
@@ -238,7 +240,7 @@ test_that("calculate_asr_direct() results match PHEindicatormethods::calculate_d
 
   # Use average population as standard
   standard_pop_epitools <- apply(population_matrix[, -6], 1, mean)
-  
+
   # Test data setup - using Birth Order 1 data (good case counts)
   prep_data_for_epiutils <- function(cases_vec, pop_vec, std_pop_vec) {
     data.frame(
@@ -248,7 +250,7 @@ test_that("calculate_asr_direct() results match PHEindicatormethods::calculate_d
       standard_pop = std_pop_vec
     )
   }
-  
+
   prep_data_for_phe <- function(cases_vec, pop_vec, std_pop_vec) {
     data.frame(
       x = as.integer(cases_vec),
@@ -256,55 +258,55 @@ test_that("calculate_asr_direct() results match PHEindicatormethods::calculate_d
       stdpop = std_pop_vec
     )
   }
-  
+
   # Birth Order 1 data
   df_epi <- prep_data_for_epiutils(count_matrix[, 1], population_matrix[, 1], standard_pop_epitools)
   df_phe <- prep_data_for_phe(count_matrix[, 1], population_matrix[, 1], standard_pop_epitools)
-  
+
   # Calculate using both methods (suppress warnings for comparison)
   result_epi <- calculate_asr_direct(df_epi, multiplier = 100000, warn_small_cases = FALSE)
-  
+
   # PHE method (using the current calculate_dsr function)
   result_phe <- PHEindicatormethods::calculate_dsr(
-    data = df_phe, 
-    x = x, 
-    n = n, 
+    data = df_phe,
+    x = x,
+    n = n,
     stdpop = stdpop,
     type = "standard",
     confidence = 0.95,
     multiplier = 100000
   )
-  
+
   # Compare point estimates (should be very close)
   expect_equal(result_epi$asr_scaled, result_phe$value, tolerance = 1e-6)
-  
+
   # Compare confidence intervals (allow for methodological differences)
   # Our function uses gamma distribution method, PHE uses Byar's/Dobson method
   expect_equal(result_epi$ci_lower_scaled, result_phe$lowercl, tolerance = 0.5)
   expect_equal(result_epi$ci_upper_scaled, result_phe$uppercl, tolerance = 0.5)
-  
+
   # Test with different multiplier
   result_epi_1k <- calculate_asr_direct(df_epi, multiplier = 1000, warn_small_cases = FALSE)
   result_phe_1k <- PHEindicatormethods::calculate_dsr(
-    data = df_phe, 
-    x = x, 
-    n = n, 
+    data = df_phe,
+    x = x,
+    n = n,
     stdpop = stdpop,
     type = "standard",
     confidence = 0.95,
     multiplier = 1000
   )
-  
+
   expect_equal(result_epi_1k$asr_scaled, result_phe_1k$value, tolerance = 1e-6)
   expect_equal(result_epi_1k$ci_lower_scaled, result_phe_1k$lowercl, tolerance = 0.01)
   expect_equal(result_epi_1k$ci_upper_scaled, result_phe_1k$uppercl, tolerance = 0.01)
 })
 
 test_that("calculate_asr_direct() handles edge cases similarly to PHEindicatormethods", {
-  
+
   # Skip if PHEindicatormethods is not available
   skip_if_not_installed("PHEindicatormethods")
-  
+
   # Set up the same test data
   population_raw <- c(230061, 329449, 114920, 39487, 14208, 3052,
                       72202, 326701, 208667, 83228, 28466, 5375,
@@ -329,7 +331,7 @@ test_that("calculate_asr_direct() handles edge cases similarly to PHEindicatorme
 
   # Use average population as standard
   standard_pop_epitools <- apply(population_matrix[, -6], 1, mean)
-  
+
   # Test with small case counts (Birth Order 3)
   prep_data_for_epiutils <- function(cases_vec, pop_vec, std_pop_vec) {
     data.frame(
@@ -339,7 +341,7 @@ test_that("calculate_asr_direct() handles edge cases similarly to PHEindicatorme
       standard_pop = std_pop_vec
     )
   }
-  
+
   prep_data_for_phe <- function(cases_vec, pop_vec, std_pop_vec) {
     data.frame(
       x = as.integer(cases_vec),
@@ -347,53 +349,53 @@ test_that("calculate_asr_direct() handles edge cases similarly to PHEindicatorme
       stdpop = std_pop_vec
     )
   }
-  
+
   # Birth Order 3 data (has small case counts)
   df_epi <- prep_data_for_epiutils(count_matrix[, 3], population_matrix[, 3], standard_pop_epitools)
   df_phe <- prep_data_for_phe(count_matrix[, 3], population_matrix[, 3], standard_pop_epitools)
-  
+
   # Calculate using both methods
   result_epi <- calculate_asr_direct(df_epi, multiplier = 100000, warn_small_cases = FALSE)
   result_phe <- PHEindicatormethods::calculate_dsr(
-    data = df_phe, 
-    x = x, 
-    n = n, 
+    data = df_phe,
+    x = x,
+    n = n,
     stdpop = stdpop,
     type = "standard",
     confidence = 0.95,
     multiplier = 100000
   )
-  
+
   # Results should still match despite small case counts (allowing for method differences)
   expect_equal(result_epi$asr_scaled, result_phe$value, tolerance = 1e-6)
   expect_equal(result_epi$ci_lower_scaled, result_phe$lowercl, tolerance = 0.5)
   expect_equal(result_epi$ci_upper_scaled, result_phe$uppercl, tolerance = 0.5)
-  
+
   # Test Birth Order 4 (even smaller case counts)
   df_epi_4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
   df_phe_4 <- prep_data_for_phe(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
-  
+
   result_epi_4 <- calculate_asr_direct(df_epi_4, multiplier = 100000, warn_small_cases = FALSE)
   result_phe_4 <- PHEindicatormethods::calculate_dsr(
-    data = df_phe_4, 
-    x = x, 
-    n = n, 
+    data = df_phe_4,
+    x = x,
+    n = n,
     stdpop = stdpop,
     type = "standard",
     confidence = 0.95,
     multiplier = 100000
   )
-  
+
   expect_equal(result_epi_4$asr_scaled, result_phe_4$value, tolerance = 1e-6)
   expect_equal(result_epi_4$ci_lower_scaled, result_phe_4$lowercl, tolerance = 1.0)
   expect_equal(result_epi_4$ci_upper_scaled, result_phe_4$uppercl, tolerance = 8.5)
 })
 
 test_that("calculate_asr_direct() confidence intervals match PHE method", {
-  
+
   # Skip if PHEindicatormethods is not available
   skip_if_not_installed("PHEindicatormethods")
-  
+
   # Use a simple test case for precise comparison
   test_data_epi <- data.frame(
     age_group = c("0-19", "20-39", "40-59", "60+"),
@@ -401,50 +403,132 @@ test_that("calculate_asr_direct() confidence intervals match PHE method", {
     person_years = c(10000, 8000, 6000, 4000),
     standard_pop = c(25000, 20000, 15000, 10000)
   )
-  
+
   test_data_phe <- data.frame(
     x = as.integer(c(5, 15, 35, 25)),
     n = c(10000, 8000, 6000, 4000),
     stdpop = c(25000, 20000, 15000, 10000)
   )
-  
+
   # Calculate using our method
   result_epi <- calculate_asr_direct(test_data_epi, multiplier = 100000, warn_small_cases = FALSE)
-  
+
   # Calculate using PHE method (Byar's method with Dobson adjustment)
   result_phe <- PHEindicatormethods::calculate_dsr(
-    data = test_data_phe, 
-    x = x, 
-    n = n, 
+    data = test_data_phe,
+    x = x,
+    n = n,
     stdpop = stdpop,
     type = "standard",
     confidence = 0.95,
     multiplier = 100000
   )
-  
+
   # Note: Our method uses gamma distribution, PHE uses Byar's/Dobson
   # Point estimates should match exactly
   expect_equal(result_epi$asr_scaled, result_phe$value, tolerance = 1e-6)
-  
+
   # Confidence intervals may differ slightly due to different methods
   # but should be close for reasonable sample sizes
   expect_equal(result_epi$ci_lower_scaled, result_phe$lowercl, tolerance = 0.1)
   expect_equal(result_epi$ci_upper_scaled, result_phe$uppercl, tolerance = 0.1)
-  
+
   # Test different confidence level
-  result_epi_99 <- calculate_asr_direct(test_data_epi, multiplier = 100000, 
+  result_epi_99 <- calculate_asr_direct(test_data_epi, multiplier = 100000,
                                        conf_level = 0.99, warn_small_cases = FALSE)
   result_phe_99 <- PHEindicatormethods::calculate_dsr(
-    data = test_data_phe, 
-    x = x, 
-    n = n, 
+    data = test_data_phe,
+    x = x,
+    n = n,
     stdpop = stdpop,
     type = "standard",
     confidence = 0.99,
     multiplier = 100000
   )
-  
+
   expect_equal(result_epi_99$asr_scaled, result_phe_99$value, tolerance = 1e-6)
   expect_equal(result_epi_99$ci_lower_scaled, result_phe_99$lowercl, tolerance = 0.1)
   expect_equal(result_epi_99$ci_upper_scaled, result_phe_99$uppercl, tolerance = 0.1)
 })
+
+# Test warnings -----------------------------------------------------------
+
+test_that("calculate_asr_direct handles small and zero case counts appropriately", {
+
+  # Test data with mix of zero, small, and adequate case counts
+  test_data <- data.frame(
+    age_group = c("0-20", "20-40", "40-60", "60-80"),
+    events = c(0L, 3L, 15L, 25L),  # Zero, small, adequate, adequate
+    person_years = c(1000, 1500, 2000, 1800),
+    standard_pop = c(2500, 3000, 2000, 1500)
+  )
+
+  # Test with warnings enabled (default)
+  expect_warning(
+    result1 <- calculate_asr_direct(test_data),
+    "Found age groups with small/zero case counts"
+  )
+
+  # Should still produce valid results
+  expect_true(is.numeric(result1$asr))
+  expect_true(is.numeric(result1$ci_lower))
+  expect_true(is.numeric(result1$ci_upper))
+  expect_true(result1$asr > 0)
+
+  # Test with warnings disabled
+  expect_silent(
+    result2 <- calculate_asr_direct(test_data, warn_small_cases = FALSE)
+  )
+
+  # Results should be identical regardless of warning setting
+  expect_equal(result1$asr, result2$asr)
+  expect_equal(result1$ci_lower, result2$ci_lower)
+  expect_equal(result1$ci_upper, result2$ci_upper)
+
+  # Test that zero person-years still fails
+  bad_data <- test_data
+  bad_data$person_years[1] <- 0
+
+  expect_error(
+    suppressWarnings(calculate_asr_direct(bad_data)),
+    "person_years.*positive values"
+  )
+})
+
+test_that("calculate_asr_direct warning messages are informative", {
+
+  # Test data designed to trigger specific warning patterns
+  single_small_case <- data.frame(
+    age_group = c("0-20", "20-40"),
+    events = c(2L, 15L),
+    person_years = c(1000, 2000),
+    standard_pop = c(1000, 2000)
+  )
+
+  multiple_small_cases <- data.frame(
+    age_group = c("0-20", "20-40", "40-60"),
+    events = c(1L, 3L, 15L),
+    person_years = c(1000, 1500, 2000),
+    standard_pop = c(1000, 1500, 2000)
+  )
+
+  # Test single small case warning
+  expect_warning(
+    calculate_asr_direct(single_small_case),
+    "Found age groups with small/zero case counts"
+  )
+
+  # Test multiple small cases warning
+  expect_warning(
+    calculate_asr_direct(multiple_small_cases),
+    "Found age groups with small/zero case counts"
+  )
+
+  # Test informative guidance in warnings
+  expect_warning(
+    calculate_asr_direct(single_small_case),
+    "Consider wider age groups"
+  )
+})
+
+

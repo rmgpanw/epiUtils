@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 
 ## Key Features
 
-- **Age-Standardised Rates**: Calculate directly standardised rates with gamma-based confidence intervals
+- **Age-Standardised Rates**: Calculate directly standardised rates with gamma or Byar's confidence intervals
 - **Person-Years Calculation**: Compute person-years by age strata with automatic age-transition handling
 - **WHO Standard Population**: Built-in WHO 2000-2025 World Standard Population data
 
@@ -97,7 +97,7 @@ head(who_2000_2025_standard_population)
 
 ### Smart Case Count Handling
 
-Warnings are raised for small case counts while allowing users to make informed decisions:
+Warnings are raised for small case counts:
 
 ```{r warnings-example}
 # Data with small case counts
@@ -113,6 +113,21 @@ result_with_warnings <- calculate_asr_direct(small_counts_data)
 
 # Calculate silently when appropriate
 result_silent <- calculate_asr_direct(small_counts_data, warn_small_cases = FALSE)
+```
+
+### Confidence Interval Methods
+
+Choose between two confidence interval calculation methods:
+
+```{r ci-methods-example}
+# Gamma method (default) - more conservative for small counts and low rates
+result_gamma <- calculate_asr_direct(small_counts_data, warn_small_cases = FALSE)
+
+# Byar's/Dobson method - traditional epidemiological approach  
+result_byars <- calculate_asr_direct(small_counts_data, ci_method = "byars", warn_small_cases = FALSE)
+
+cat("Gamma CI:", round(result_gamma$ci_lower_scaled, 1), "-", round(result_gamma$ci_upper_scaled, 1), "\n")
+cat("Byar's CI:", round(result_byars$ci_lower_scaled, 1), "-", round(result_byars$ci_upper_scaled, 1), "\n")
 ```
 
 ### Integration with Standard Populations
