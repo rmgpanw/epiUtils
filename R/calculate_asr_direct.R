@@ -62,6 +62,9 @@
 #' Breslow, N. E., & Day, N. E. (1987). Statistical methods in cancer research.
 #' Volume II--The design and analysis of cohort studies. IARC scientific publications, (82), 1-406.
 #'
+#' @importFrom dplyr mutate select pull everything all_of
+#' @importFrom tibble tibble
+#' @importFrom stats qgamma
 #' @export
 calculate_asr_direct <- function(.df,
                                  cases_col,
@@ -71,41 +74,58 @@ calculate_asr_direct <- function(.df,
                                  multiplier = 100000) {
   # Input validation
   if (!is.data.frame(.df)) {
-    stop("data must be a data frame")
+    cli::cli_abort(c(
+      "x" = ".df must be a data frame",
+      "i" = "You provided a {.cls {class(.df)}}"
+    ))
   }
 
   if (!cases_col %in% names(.df)) {
-    stop(paste("Column", cases_col, "not found in data"))
+    cli::cli_abort(c(
+      "x" = "Column {.val {cases_col}} not found in data",
+      "i" = "Available columns: {.val {names(.df)}}"
+    ))
   }
 
   if (!population_col %in% names(.df)) {
-    stop(paste("Column", population_col, "not found in data"))
+    cli::cli_abort(c(
+      "x" = "Column {.val {population_col}} not found in data",
+      "i" = "Available columns: {.val {names(.df)}}"
+    ))
   }
 
   if (nrow(.df) != length(standard_pop)) {
-    stop("Length of standard_pop must match number of rows in data")
+    cli::cli_abort(c(
+      "x" = "Length of standard_pop must match number of rows in data",
+      "i" = "Data has {nrow(.df)} row{?s}, but standard_pop has {length(standard_pop)} value{?s}"
+    ))
   }
 
   if (conf_level <= 0 || conf_level >= 1) {
-    stop("conf_level must be between 0 and 1")
+    cli::cli_abort(c(
+      "x" = "conf_level must be between 0 and 1",
+      "i" = "You provided {.val {conf_level}}"
+    ))
   }
 
   if (multiplier <= 0) {
-    stop("multiplier must be positive")
+    cli::cli_abort(c(
+      "x" = "multiplier must be positive",
+      "i" = "You provided {.val {multiplier}}"
+    ))
   }
 
   # Calculate age-specific rates and weights using tidyverse
-  asr_data <- .df %>%
+  asr_data <- .df |>
     dplyr::mutate(
-      cases = .data[[cases_col]],
-      population = .data[[population_col]],
-      standard_pop = standard_pop,
-      age_specific_rate = cases / population,
-      std_weight = standard_pop / sum(standard_pop),
-      expected_cases = age_specific_rate * standard_pop,
+      "cases" = .data[[cases_col]],
+      "population" = .data[[population_col]],
+      "standard_pop" = standard_pop,
+      "age_specific_rate" = .data[["cases"]] / .data[["population"]],
+      "std_weight" = .data[["standard_pop"]] / sum(.data[["standard_pop"]]),
+      "expected_cases" = .data[["age_specific_rate"]] * .data[["standard_pop"]],
       .keep = "all"
-    ) %>%
-    dplyr::select(dplyr::everything(), -dplyr::all_of(c(cases_col, population_col)))
+    )
 
   # Calculate summary statistics
   total_cases <- sum(asr_data$cases)
@@ -120,16 +140,16 @@ calculate_asr_direct <- function(.df,
   alpha <- 1 - conf_level
 
   # Variance calculation for gamma method
-  variance_components <- asr_data %>%
-    dplyr::mutate(variance_term = (std_weight^2) * (cases / population^2)) %>%
-    dplyr::pull(variance_term)
+  variance_components <- asr_data |>
+    dplyr::mutate("variance_term" = (.data[["std_weight"]]^2) * (.data[["cases"]] / .data[["population"]]^2)) |>
+    dplyr::pull("variance_term")
 
   dsr_var <- sum(variance_components)
 
   # Calculate maximum weight term for boundary adjustment
-  wm_components <- asr_data %>%
-    dplyr::mutate(wm_term = std_weight / population) %>%
-    dplyr::pull(wm_term)
+  wm_components <- asr_data |>
+    dplyr::mutate("wm_term" = .data[["std_weight"]] / .data[["population"]]) |>
+    dplyr::pull("wm_term")
 
   wm <- max(wm_components)
 
@@ -146,13 +166,13 @@ calculate_asr_direct <- function(.df,
   ci_upper <- stats::qgamma(1 - alpha / 2, shape = shape_param_upper, scale = scale_param_upper)
 
   # Prepare detailed age-specific results
-  age_specific_results <- asr_data %>%
+  age_specific_results <- asr_data |>
     dplyr::mutate(
-      age_specific_rate_scaled = age_specific_rate * multiplier,
-      contribution_to_asr = age_specific_rate * std_weight,
+      "age_specific_rate_scaled" = .data[["age_specific_rate"]] * !!multiplier,
+      "contribution_to_asr" = .data[["age_specific_rate"]] * .data[["std_weight"]],
       .keep = "all"
-    ) %>%
-    dplyr::select(dplyr::everything(), -expected_cases)
+    ) |>
+    dplyr::select(dplyr::everything(), -dplyr::all_of("expected_cases"))
 
   # Return comprehensive results
   tibble::tibble(
@@ -165,6 +185,6 @@ calculate_asr_direct <- function(.df,
     ci_lower_scaled = ci_lower * multiplier,
     ci_upper_scaled = ci_upper * multiplier,
     conf_level = conf_level,
-    age_specific_data = age_specific_results
+    age_specific_data = list(age_specific_results)
   )
 }

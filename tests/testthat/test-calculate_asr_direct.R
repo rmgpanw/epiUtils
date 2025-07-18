@@ -7,6 +7,7 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
                       2293, 68800, 132424, 98301, 46075, 9834,
                       327, 30666, 123419, 149919, 104088, 34392,
                       319933, 931318, 786511, 488235, 237863, 61313)
+
   population_matrix <- matrix(population_raw, 6, 6,
                               dimnames = list(c("Under 20", "20-24", "25-29", "30-34", "35-39", "40 and over"),
                                               c("1", "2", "3", "4", "5+", "Total")))
@@ -24,10 +25,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   # Use average population as standard
   standard_pop_epitools <- apply(population_matrix[, -6], 1, mean)
 
-  # Prepare data for your function
-  # We need to test each 'birth order' column separately
-  # Let's create a helper function to structure data for your function
-  prep_data_for_my_func <- function(cases_vec, pop_vec) {
+  # Test each 'birth order' column separately
+  prep_data_for_epiutils <- function(cases_vec, pop_vec) {
     data.frame(
       age_group = rownames(population_matrix)[1:6], # Use original age group names
       cases = cases_vec,
@@ -36,8 +35,9 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   }
 
   # --- Birth Order 1 ---
-  df1 <- prep_data_for_my_func(count_matrix[, 1], population_matrix[, 1])
-  my_result1 <- calculate_asr_direct(
+  df1 <- prep_data_for_epiutils(count_matrix[, 1], population_matrix[, 1])
+
+  our_result1 <- calculate_asr_direct(
     .df = df1,
     cases_col = "cases",
     population_col = "population",
@@ -51,15 +51,15 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   )
 
   # Check ASR (mean)
-  expect_equal(my_result1$asr, epitools_result1[1, "rate"], tolerance = 1e-6)
+  expect_equal(our_result1$asr, as.numeric(epitools_result1["adj.rate"]), tolerance = 1e-6)
   # Check lower CI
-  expect_equal(my_result1$ci_lower, epitools_result1[1, "lower"], tolerance = 1e-6)
+  expect_equal(our_result1$ci_lower, as.numeric(epitools_result1["lci"]), tolerance = 1e-6)
   # Check upper CI
-  expect_equal(my_result1$ci_upper, epitools_result1[1, "upper"], tolerance = 1e-6)
+  expect_equal(our_result1$ci_upper, as.numeric(epitools_result1["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 2 ---
-  df2 <- prep_data_for_my_func(count_matrix[, 2], population_matrix[, 2])
-  my_result2 <- calculate_asr_direct(
+  df2 <- prep_data_for_epiutils(count_matrix[, 2], population_matrix[, 2])
+  our_result2 <- calculate_asr_direct(
     .df = df2,
     cases_col = "cases",
     population_col = "population",
@@ -71,13 +71,13 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
     pop = population_matrix[, 2],
     stdpop = standard_pop_epitools
   )
-  expect_equal(my_result2$asr, epitools_result2[1, "rate"], tolerance = 1e-6)
-  expect_equal(my_result2$ci_lower, epitools_result2[1, "lower"], tolerance = 1e-6)
-  expect_equal(my_result2$ci_upper, epitools_result2[1, "upper"], tolerance = 1e-6)
+  expect_equal(our_result2$asr, as.numeric(epitools_result2["adj.rate"]), tolerance = 1e-6)
+  expect_equal(our_result2$ci_lower, as.numeric(epitools_result2["lci"]), tolerance = 1e-6)
+  expect_equal(our_result2$ci_upper, as.numeric(epitools_result2["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 3 ---
-  df3 <- prep_data_for_my_func(count_matrix[, 3], population_matrix[, 3])
-  my_result3 <- calculate_asr_direct(
+  df3 <- prep_data_for_epiutils(count_matrix[, 3], population_matrix[, 3])
+  our_result3 <- calculate_asr_direct(
     .df = df3,
     cases_col = "cases",
     population_col = "population",
@@ -89,13 +89,13 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
     pop = population_matrix[, 3],
     stdpop = standard_pop_epitools
   )
-  expect_equal(my_result3$asr, epitools_result3[1, "rate"], tolerance = 1e-6)
-  expect_equal(my_result3$ci_lower, epitools_result3[1, "lower"], tolerance = 1e-6)
-  expect_equal(my_result3$ci_upper, epitools_result3[1, "upper"], tolerance = 1e-6)
+  expect_equal(our_result3$asr, as.numeric(epitools_result3["adj.rate"]), tolerance = 1e-6)
+  expect_equal(our_result3$ci_lower, as.numeric(epitools_result3["lci"]), tolerance = 1e-6)
+  expect_equal(our_result3$ci_upper, as.numeric(epitools_result3["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 4 ---
-  df4 <- prep_data_for_my_func(count_matrix[, 4], population_matrix[, 4])
-  my_result4 <- calculate_asr_direct(
+  df4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4])
+  our_result4 <- calculate_asr_direct(
     .df = df4,
     cases_col = "cases",
     population_col = "population",
@@ -107,13 +107,13 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
     pop = population_matrix[, 4],
     stdpop = standard_pop_epitools
   )
-  expect_equal(my_result4$asr, epitools_result4[1, "rate"], tolerance = 1e-6)
-  expect_equal(my_result4$ci_lower, epitools_result4[1, "lower"], tolerance = 1e-6)
-  expect_equal(my_result4$ci_upper, epitools_result4[1, "upper"], tolerance = 1e-6)
+  expect_equal(our_result4$asr, as.numeric(epitools_result4["adj.rate"]), tolerance = 1e-6)
+  expect_equal(our_result4$ci_lower, as.numeric(epitools_result4["lci"]), tolerance = 1e-6)
+  expect_equal(our_result4$ci_upper, as.numeric(epitools_result4["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 5+ ---
-  df5p <- prep_data_for_my_func(count_matrix[, 5], population_matrix[, 5])
-  my_result5p <- calculate_asr_direct(
+  df5p <- prep_data_for_epiutils(count_matrix[, 5], population_matrix[, 5])
+  our_result5p <- calculate_asr_direct(
     .df = df5p,
     cases_col = "cases",
     population_col = "population",
@@ -125,8 +125,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
     pop = population_matrix[, 5],
     stdpop = standard_pop_epitools
   )
-  expect_equal(my_result5p$asr, epitools_result5p[1, "rate"], tolerance = 1e-6)
-  expect_equal(my_result5p$ci_lower, epitools_result5p[1, "lower"], tolerance = 1e-6)
-  expect_equal(my_result5p$ci_upper, epitools_result5p[1, "upper"], tolerance = 1e-6)
+  expect_equal(our_result5p$asr, as.numeric(epitools_result5p["adj.rate"]), tolerance = 1e-6)
+  expect_equal(our_result5p$ci_lower, as.numeric(epitools_result5p["lci"]), tolerance = 1e-6)
+  expect_equal(our_result5p$ci_upper, as.numeric(epitools_result5p["uci"]), tolerance = 1e-6)
 
 })
