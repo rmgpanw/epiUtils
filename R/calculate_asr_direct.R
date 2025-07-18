@@ -5,10 +5,12 @@
 #' The gamma method is preferred as it naturally prevents negative confidence
 #' interval bounds and is the standard approach in epidemiological literature.
 #'
-#' @param .df A data frame containing age-specific case counts and population data
-#' @param cases_col Character string specifying the column name for case counts
-#' @param population_col Character string specifying the column name for population sizes
-#' @param standard_pop Numeric vector of standard population weights for each age group
+#' @param .df A data frame containing age-specific case counts, population data,
+#'   and standard population weights. Must contain the following columns:
+#'   - **age_group**: Age group labels
+#'   - **events**: Number of events/cases in each age group (integer)
+#'   - **person_years**: Person-years of follow-up or population size in each age group (numeric)
+#'   - **standard_pop**: Standard population weights for each age group (numeric)
 #' @param conf_level Confidence level for confidence intervals (default: 0.95)
 #' @param multiplier Multiplier for rate expression (default: 100000 for rates per 100,000)
 #'
@@ -35,23 +37,16 @@
 #' ASR = Σ(w_i × r_i) where w_i are standardised weights and r_i are age-specific rates
 #'
 #' @examples
-#' # Example data
+#' # Example data with required columns
 #' pop_data <- data.frame(
 #'   age_group = c("0-19", "20-39", "40-59", "60-79", "80+"),
-#'   cases = c(5, 25, 150, 300, 80),
-#'   population = c(20000, 25000, 22000, 15000, 3000)
+#'   events = c(5L, 25L, 150L, 300L, 80L),
+#'   person_years = c(20000, 25000, 22000, 15000, 3000),
+#'   standard_pop = c(35000, 25000, 20000, 15000, 5000)
 #' )
-#'
-#' # Standard population (World Standard Population)
-#' std_pop <- c(35000, 25000, 20000, 15000, 5000)
 #'
 #' # Calculate ASR
-#' result <- calculate_asr_direct(
-#'   .df = pop_data,
-#'   cases_col = "cases",
-#'   population_col = "population",
-#'   standard_pop = std_pop
-#' )
+#' result <- calculate_asr_direct(.df = pop_data)
 #'
 #' # View results
 #' print(result$asr_scaled)  # ASR per 100,000
@@ -67,9 +62,6 @@
 #' @importFrom stats qgamma
 #' @export
 calculate_asr_direct <- function(.df,
-                                 cases_col,
-                                 population_col,
-                                 standard_pop,
                                  conf_level = 0.95,
                                  multiplier = 100000) {
   # Input validation
@@ -80,24 +72,69 @@ calculate_asr_direct <- function(.df,
     ))
   }
 
-  if (!cases_col %in% names(.df)) {
+  # Check required columns
+  required_cols <- c("age_group", "events", "person_years", "standard_pop")
+  missing_cols <- setdiff(required_cols, names(.df))
+
+  if (length(missing_cols) > 0) {
     cli::cli_abort(c(
-      "x" = "Column {.val {cases_col}} not found in data",
-      "i" = "Available columns: {.val {names(.df)}}"
+      "x" = "Missing required column{?s}: {.val {missing_cols}}",
+      "i" = "Available columns: {.val {names(.df)}}",
+      "i" = "Required columns: age_group, events, person_years, standard_pop"
     ))
   }
 
-  if (!population_col %in% names(.df)) {
+  # Check for missing values
+  has_missing <- sapply(.df[required_cols], \(.x) any(is.na(.x)))
+  if (any(has_missing)) {
+    missing_cols <- names(has_missing)[has_missing]
     cli::cli_abort(c(
-      "x" = "Column {.val {population_col}} not found in data",
-      "i" = "Available columns: {.val {names(.df)}}"
+      "x" = "Missing values found in column{?s}: {.val {missing_cols}}",
+      "i" = "All required columns must have complete data"
     ))
   }
 
-  if (nrow(.df) != length(standard_pop)) {
+  # Check data types
+  if (!is.integer(.df$events)) {
     cli::cli_abort(c(
-      "x" = "Length of standard_pop must match number of rows in data",
-      "i" = "Data has {nrow(.df)} row{?s}, but standard_pop has {length(standard_pop)} value{?s}"
+      "x" = "Column 'events' must be of type integer",
+      "i" = "Currently has type: {.cls {typeof(.df$events)}}"
+    ))
+  }
+
+  if (!is.numeric(.df$person_years)) {
+    cli::cli_abort(c(
+      "x" = "Column 'person_years' must be numeric",
+      "i" = "Currently has type: {.cls {typeof(.df$person_years)}}"
+    ))
+  }
+
+  if (!is.numeric(.df$standard_pop)) {
+    cli::cli_abort(c(
+      "x" = "Column 'standard_pop' must be numeric",
+      "i" = "Currently has type: {.cls {typeof(.df$standard_pop)}}"
+    ))
+  }
+
+  # Check for non-negative values
+  if (any(.df$events < 0)) {
+    cli::cli_abort(c(
+      "x" = "Column 'events' must contain non-negative values",
+      "i" = "Found negative values"
+    ))
+  }
+
+  if (any(.df$person_years <= 0)) {
+    cli::cli_abort(c(
+      "x" = "Column 'person_years' must contain positive values",
+      "i" = "Found non-positive values"
+    ))
+  }
+
+  if (any(.df$standard_pop <= 0)) {
+    cli::cli_abort(c(
+      "x" = "Column 'standard_pop' must contain positive values",
+      "i" = "Found non-positive values"
     ))
   }
 
@@ -115,21 +152,18 @@ calculate_asr_direct <- function(.df,
     ))
   }
 
-  # Calculate age-specific rates and weights using tidyverse
+  # Calculate age-specific rates and weights
   asr_data <- .df |>
     dplyr::mutate(
-      "cases" = .data[[cases_col]],
-      "population" = .data[[population_col]],
-      "standard_pop" = standard_pop,
-      "age_specific_rate" = .data[["cases"]] / .data[["population"]],
+      "age_specific_rate" = .data[["events"]] / .data[["person_years"]],
       "std_weight" = .data[["standard_pop"]] / sum(.data[["standard_pop"]]),
       "expected_cases" = .data[["age_specific_rate"]] * .data[["standard_pop"]],
       .keep = "all"
     )
 
   # Calculate summary statistics
-  total_cases <- sum(asr_data$cases)
-  total_population <- sum(asr_data$population)
+  total_cases <- sum(asr_data$events)
+  total_population <- sum(asr_data$person_years)
   total_std_pop <- sum(asr_data$standard_pop)
 
   # Calculate rates
@@ -141,14 +175,14 @@ calculate_asr_direct <- function(.df,
 
   # Variance calculation for gamma method
   variance_components <- asr_data |>
-    dplyr::mutate("variance_term" = (.data[["std_weight"]]^2) * (.data[["cases"]] / .data[["population"]]^2)) |>
+    dplyr::mutate("variance_term" = (.data[["std_weight"]]^2) * (.data[["events"]] / .data[["person_years"]]^2)) |>
     dplyr::pull("variance_term")
 
   dsr_var <- sum(variance_components)
 
   # Calculate maximum weight term for boundary adjustment
   wm_components <- asr_data |>
-    dplyr::mutate("wm_term" = .data[["std_weight"]] / .data[["population"]]) |>
+    dplyr::mutate("wm_term" = .data[["std_weight"]] / .data[["person_years"]]) |>
     dplyr::pull("wm_term")
 
   wm <- max(wm_components)

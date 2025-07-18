@@ -26,22 +26,20 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   standard_pop_epitools <- apply(population_matrix[, -6], 1, mean)
 
   # Test each 'birth order' column separately
-  prep_data_for_epiutils <- function(cases_vec, pop_vec) {
+  prep_data_for_epiutils <- function(cases_vec, pop_vec, std_pop_vec) {
     data.frame(
       age_group = rownames(population_matrix)[1:6], # Use original age group names
-      cases = cases_vec,
-      population = pop_vec
+      events = as.integer(cases_vec),
+      person_years = pop_vec,
+      standard_pop = std_pop_vec
     )
   }
 
   # --- Birth Order 1 ---
-  df1 <- prep_data_for_epiutils(count_matrix[, 1], population_matrix[, 1])
+  df1 <- prep_data_for_epiutils(count_matrix[, 1], population_matrix[, 1], standard_pop_epitools)
 
   our_result1 <- calculate_asr_direct(
     .df = df1,
-    cases_col = "cases",
-    population_col = "population",
-    standard_pop = standard_pop_epitools,
     multiplier = 1 # Epitools returns raw rates, then multiplied later
   )
   epitools_result1 <- epitools::ageadjust.direct(
@@ -58,12 +56,9 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   expect_equal(our_result1$ci_upper, as.numeric(epitools_result1["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 2 ---
-  df2 <- prep_data_for_epiutils(count_matrix[, 2], population_matrix[, 2])
+  df2 <- prep_data_for_epiutils(count_matrix[, 2], population_matrix[, 2], standard_pop_epitools)
   our_result2 <- calculate_asr_direct(
     .df = df2,
-    cases_col = "cases",
-    population_col = "population",
-    standard_pop = standard_pop_epitools,
     multiplier = 1
   )
   epitools_result2 <- epitools::ageadjust.direct(
@@ -76,12 +71,9 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   expect_equal(our_result2$ci_upper, as.numeric(epitools_result2["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 3 ---
-  df3 <- prep_data_for_epiutils(count_matrix[, 3], population_matrix[, 3])
+  df3 <- prep_data_for_epiutils(count_matrix[, 3], population_matrix[, 3], standard_pop_epitools)
   our_result3 <- calculate_asr_direct(
     .df = df3,
-    cases_col = "cases",
-    population_col = "population",
-    standard_pop = standard_pop_epitools,
     multiplier = 1
   )
   epitools_result3 <- epitools::ageadjust.direct(
@@ -94,12 +86,9 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   expect_equal(our_result3$ci_upper, as.numeric(epitools_result3["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 4 ---
-  df4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4])
+  df4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
   our_result4 <- calculate_asr_direct(
     .df = df4,
-    cases_col = "cases",
-    population_col = "population",
-    standard_pop = standard_pop_epitools,
     multiplier = 1
   )
   epitools_result4 <- epitools::ageadjust.direct(
@@ -112,12 +101,9 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   expect_equal(our_result4$ci_upper, as.numeric(epitools_result4["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 5+ ---
-  df5p <- prep_data_for_epiutils(count_matrix[, 5], population_matrix[, 5])
+  df5p <- prep_data_for_epiutils(count_matrix[, 5], population_matrix[, 5], standard_pop_epitools)
   our_result5p <- calculate_asr_direct(
     .df = df5p,
-    cases_col = "cases",
-    population_col = "population",
-    standard_pop = standard_pop_epitools,
     multiplier = 1
   )
   epitools_result5p <- epitools::ageadjust.direct(

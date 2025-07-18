@@ -4,23 +4,17 @@
 \alias{calculate_asr_direct}
 \title{Calculate Age-Standardised Incidence Rates with Confidence Intervals}
 \usage{
-calculate_asr_direct(
-  .df,
-  cases_col,
-  population_col,
-  standard_pop,
-  conf_level = 0.95,
-  multiplier = 1e+05
-)
+calculate_asr_direct(.df, conf_level = 0.95, multiplier = 1e+05)
 }
 \arguments{
-\item{.df}{A data frame containing age-specific case counts and population data}
-
-\item{cases_col}{Character string specifying the column name for case counts}
-
-\item{population_col}{Character string specifying the column name for population sizes}
-
-\item{standard_pop}{Numeric vector of standard population weights for each age group}
+\item{.df}{A data frame containing age-specific case counts, population data,
+and standard population weights. Must contain the following columns:
+\itemize{
+\item \strong{age_group}: Age group labels
+\item \strong{events}: Number of events/cases in each age group (integer)
+\item \strong{person_years}: Person-years of follow-up or population size in each age group (numeric)
+\item \strong{standard_pop}: Standard population weights for each age group (numeric)
+}}
 
 \item{conf_level}{Confidence level for confidence intervals (default: 0.95)}
 
@@ -58,23 +52,16 @@ The direct standardisation method calculates ASR as:
 ASR = Σ(w_i × r_i) where w_i are standardised weights and r_i are age-specific rates
 }
 \examples{
-# Example data
+# Example data with required columns
 pop_data <- data.frame(
   age_group = c("0-19", "20-39", "40-59", "60-79", "80+"),
-  cases = c(5, 25, 150, 300, 80),
-  population = c(20000, 25000, 22000, 15000, 3000)
+  events = c(5L, 25L, 150L, 300L, 80L),
+  person_years = c(20000, 25000, 22000, 15000, 3000),
+  standard_pop = c(35000, 25000, 20000, 15000, 5000)
 )
-
-# Standard population (World Standard Population)
-std_pop <- c(35000, 25000, 20000, 15000, 5000)
 
 # Calculate ASR
-result <- calculate_asr_direct(
-  .df = pop_data,
-  cases_col = "cases",
-  population_col = "population",
-  standard_pop = std_pop
-)
+result <- calculate_asr_direct(.df = pop_data)
 
 # View results
 print(result$asr_scaled)  # ASR per 100,000
