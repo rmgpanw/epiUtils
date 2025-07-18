@@ -4,6 +4,10 @@
 # epiUtils
 
 <!-- badges: start -->
+
+[![Codecov test
+coverage](https://codecov.io/gh/rmgpanw/epiUtils/graph/badge.svg)](https://app.codecov.io/gh/rmgpanw/epiUtils)
+[![R-CMD-check](https://github.com/rmgpanw/epiUtils/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rmgpanw/epiUtils/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `epiUtils` provides essential tools for epidemiological analysis,
@@ -14,16 +18,12 @@ validation, and built-in standard population data.
 
 ## Key Features
 
--   **Age-Standardised Rates**: Calculate directly standardised rates
-    with gamma-based confidence intervals
--   **Person-Years Calculation**: Compute person-years by age strata
-    with automatic age-transition handling
--   **WHO Standard Population**: Built-in WHO 2000-2025 World Standard
-    Population data
--   **Robust Validation**: Validated against `epitools` using
-    authoritative epidemiological datasets
--   **Smart Warnings**: Helpful guidance for small case counts and data
-    quality issues
+- **Age-Standardised Rates**: Calculate directly standardised rates with
+  gamma-based confidence intervals
+- **Person-Years Calculation**: Compute person-years by age strata with
+  automatic age-transition handling
+- **WHO Standard Population**: Built-in WHO 2000-2025 World Standard
+  Population data
 
 ## Installation
 
@@ -111,7 +111,8 @@ print(py_result)
 
 ### WHO Standard Population
 
-Access the built-in WHO 2000-2025 World Standard Population:
+Access the built-in [WHO 2000-2025 World Standard
+Population](https://seer.cancer.gov/stdpopulations/world.who.html):
 
 ``` r
 # Load WHO standard population
@@ -137,8 +138,8 @@ head(who_2000_2025_standard_population)
 
 ### Smart Case Count Handling
 
-The package provides intelligent warnings for small case counts while
-allowing users to make informed decisions:
+Warnings are raised for small case counts while allowing users to make
+informed decisions:
 
 ``` r
 # Data with small case counts
@@ -186,26 +187,6 @@ who_result <- calculate_asr_direct(incidence_data)
 cat("ASR using WHO standard:", round(who_result$asr_scaled, 1), "per 100,000\n")
 #> ASR using WHO standard: 116 per 100,000
 ```
-
-## Validation and Reliability
-
--   **Validated against epitools**: Results match
-    `epitools::ageadjust.direct()` exactly
--   **Authoritative test data**: Uses Fleiss (1981) epidemiological
-    datasets
--   **Comprehensive testing**: 50+ tests covering edge cases and warning
-    scenarios
--   **Mathematical rigor**: Implements gamma distribution method for
-    confidence intervals
-
-## Documentation
-
-For detailed examples and advanced usage, see:
-
--   `vignette("epiUtils")` - Comprehensive tutorial with visualizations
--   `?calculate_asr_direct` - Detailed function documentation
--   `?calculate_person_years_by_age_strata` - Person-years calculation
-    guide
 
 ## Citation
 

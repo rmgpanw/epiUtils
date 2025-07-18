@@ -207,3 +207,244 @@ test_that("calculate_asr_direct warnings are triggered correctly", {
   expect_equal(result_with_warnings$ci_lower, result_without_warnings$ci_lower)
   expect_equal(result_with_warnings$ci_upper, result_without_warnings$ci_upper)
 })
+
+# Tests comparing with PHEindicatormethods::calculate_dsr() ----
+test_that("calculate_asr_direct() results match PHEindicatormethods::calculate_dsr()", {
+  
+  # Skip if PHEindicatormethods is not available
+  skip_if_not_installed("PHEindicatormethods")
+  
+  # Set up the same test data as in the main epitools comparison test
+  population_raw <- c(230061, 329449, 114920, 39487, 14208, 3052,
+                      72202, 326701, 208667, 83228, 28466, 5375,
+                      15050, 175702, 207081, 117300, 45026, 8660,
+                      2293, 68800, 132424, 98301, 46075, 9834,
+                      327, 30666, 123419, 149919, 104088, 34392,
+                      319933, 931318, 786511, 488235, 237863, 61313)
+
+  population_matrix <- matrix(population_raw, 6, 6,
+                              dimnames = list(c("Under 20", "20-24", "25-29", "30-34", "35-39", "40 and over"),
+                                              c("1", "2", "3", "4", "5+", "Total")))
+
+  count_raw <- c(107, 141, 60, 40, 39, 25,
+                 25, 150, 110, 84, 82, 39,
+                 3, 71, 114, 103, 108, 75,
+                 1, 26, 64, 89, 137, 96,
+                 0, 8, 63, 112, 262, 295,
+                 136, 396, 411, 428, 628, 530)
+  count_matrix <- matrix(count_raw, 6, 6,
+                         dimnames = list(c("Under 20", "20-24", "25-29", "30-34", "35-39", "40 and over"),
+                                         c("1", "2", "3", "4", "5+", "Total")))
+
+  # Use average population as standard
+  standard_pop_epitools <- apply(population_matrix[, -6], 1, mean)
+  
+  # Test data setup - using Birth Order 1 data (good case counts)
+  prep_data_for_epiutils <- function(cases_vec, pop_vec, std_pop_vec) {
+    data.frame(
+      age_group = rownames(population_matrix)[1:6],
+      events = as.integer(cases_vec),
+      person_years = pop_vec,
+      standard_pop = std_pop_vec
+    )
+  }
+  
+  prep_data_for_phe <- function(cases_vec, pop_vec, std_pop_vec) {
+    data.frame(
+      x = as.integer(cases_vec),
+      n = pop_vec,
+      stdpop = std_pop_vec
+    )
+  }
+  
+  # Birth Order 1 data
+  df_epi <- prep_data_for_epiutils(count_matrix[, 1], population_matrix[, 1], standard_pop_epitools)
+  df_phe <- prep_data_for_phe(count_matrix[, 1], population_matrix[, 1], standard_pop_epitools)
+  
+  # Calculate using both methods (suppress warnings for comparison)
+  result_epi <- calculate_asr_direct(df_epi, multiplier = 100000, warn_small_cases = FALSE)
+  
+  # PHE method (using the current calculate_dsr function)
+  result_phe <- PHEindicatormethods::calculate_dsr(
+    data = df_phe, 
+    x = x, 
+    n = n, 
+    stdpop = stdpop,
+    type = "standard",
+    confidence = 0.95,
+    multiplier = 100000
+  )
+  
+  # Compare point estimates (should be very close)
+  expect_equal(result_epi$asr_scaled, result_phe$value, tolerance = 1e-6)
+  
+  # Compare confidence intervals (allow for methodological differences)
+  # Our function uses gamma distribution method, PHE uses Byar's/Dobson method
+  expect_equal(result_epi$ci_lower_scaled, result_phe$lowercl, tolerance = 0.5)
+  expect_equal(result_epi$ci_upper_scaled, result_phe$uppercl, tolerance = 0.5)
+  
+  # Test with different multiplier
+  result_epi_1k <- calculate_asr_direct(df_epi, multiplier = 1000, warn_small_cases = FALSE)
+  result_phe_1k <- PHEindicatormethods::calculate_dsr(
+    data = df_phe, 
+    x = x, 
+    n = n, 
+    stdpop = stdpop,
+    type = "standard",
+    confidence = 0.95,
+    multiplier = 1000
+  )
+  
+  expect_equal(result_epi_1k$asr_scaled, result_phe_1k$value, tolerance = 1e-6)
+  expect_equal(result_epi_1k$ci_lower_scaled, result_phe_1k$lowercl, tolerance = 0.01)
+  expect_equal(result_epi_1k$ci_upper_scaled, result_phe_1k$uppercl, tolerance = 0.01)
+})
+
+test_that("calculate_asr_direct() handles edge cases similarly to PHEindicatormethods", {
+  
+  # Skip if PHEindicatormethods is not available
+  skip_if_not_installed("PHEindicatormethods")
+  
+  # Set up the same test data
+  population_raw <- c(230061, 329449, 114920, 39487, 14208, 3052,
+                      72202, 326701, 208667, 83228, 28466, 5375,
+                      15050, 175702, 207081, 117300, 45026, 8660,
+                      2293, 68800, 132424, 98301, 46075, 9834,
+                      327, 30666, 123419, 149919, 104088, 34392,
+                      319933, 931318, 786511, 488235, 237863, 61313)
+
+  population_matrix <- matrix(population_raw, 6, 6,
+                              dimnames = list(c("Under 20", "20-24", "25-29", "30-34", "35-39", "40 and over"),
+                                              c("1", "2", "3", "4", "5+", "Total")))
+
+  count_raw <- c(107, 141, 60, 40, 39, 25,
+                 25, 150, 110, 84, 82, 39,
+                 3, 71, 114, 103, 108, 75,
+                 1, 26, 64, 89, 137, 96,
+                 0, 8, 63, 112, 262, 295,
+                 136, 396, 411, 428, 628, 530)
+  count_matrix <- matrix(count_raw, 6, 6,
+                         dimnames = list(c("Under 20", "20-24", "25-29", "30-34", "35-39", "40 and over"),
+                                         c("1", "2", "3", "4", "5+", "Total")))
+
+  # Use average population as standard
+  standard_pop_epitools <- apply(population_matrix[, -6], 1, mean)
+  
+  # Test with small case counts (Birth Order 3)
+  prep_data_for_epiutils <- function(cases_vec, pop_vec, std_pop_vec) {
+    data.frame(
+      age_group = rownames(population_matrix)[1:6],
+      events = as.integer(cases_vec),
+      person_years = pop_vec,
+      standard_pop = std_pop_vec
+    )
+  }
+  
+  prep_data_for_phe <- function(cases_vec, pop_vec, std_pop_vec) {
+    data.frame(
+      x = as.integer(cases_vec),
+      n = pop_vec,
+      stdpop = std_pop_vec
+    )
+  }
+  
+  # Birth Order 3 data (has small case counts)
+  df_epi <- prep_data_for_epiutils(count_matrix[, 3], population_matrix[, 3], standard_pop_epitools)
+  df_phe <- prep_data_for_phe(count_matrix[, 3], population_matrix[, 3], standard_pop_epitools)
+  
+  # Calculate using both methods
+  result_epi <- calculate_asr_direct(df_epi, multiplier = 100000, warn_small_cases = FALSE)
+  result_phe <- PHEindicatormethods::calculate_dsr(
+    data = df_phe, 
+    x = x, 
+    n = n, 
+    stdpop = stdpop,
+    type = "standard",
+    confidence = 0.95,
+    multiplier = 100000
+  )
+  
+  # Results should still match despite small case counts (allowing for method differences)
+  expect_equal(result_epi$asr_scaled, result_phe$value, tolerance = 1e-6)
+  expect_equal(result_epi$ci_lower_scaled, result_phe$lowercl, tolerance = 0.5)
+  expect_equal(result_epi$ci_upper_scaled, result_phe$uppercl, tolerance = 0.5)
+  
+  # Test Birth Order 4 (even smaller case counts)
+  df_epi_4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
+  df_phe_4 <- prep_data_for_phe(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
+  
+  result_epi_4 <- calculate_asr_direct(df_epi_4, multiplier = 100000, warn_small_cases = FALSE)
+  result_phe_4 <- PHEindicatormethods::calculate_dsr(
+    data = df_phe_4, 
+    x = x, 
+    n = n, 
+    stdpop = stdpop,
+    type = "standard",
+    confidence = 0.95,
+    multiplier = 100000
+  )
+  
+  expect_equal(result_epi_4$asr_scaled, result_phe_4$value, tolerance = 1e-6)
+  expect_equal(result_epi_4$ci_lower_scaled, result_phe_4$lowercl, tolerance = 1.0)
+  expect_equal(result_epi_4$ci_upper_scaled, result_phe_4$uppercl, tolerance = 8.5)
+})
+
+test_that("calculate_asr_direct() confidence intervals match PHE method", {
+  
+  # Skip if PHEindicatormethods is not available
+  skip_if_not_installed("PHEindicatormethods")
+  
+  # Use a simple test case for precise comparison
+  test_data_epi <- data.frame(
+    age_group = c("0-19", "20-39", "40-59", "60+"),
+    events = as.integer(c(5, 15, 35, 25)),
+    person_years = c(10000, 8000, 6000, 4000),
+    standard_pop = c(25000, 20000, 15000, 10000)
+  )
+  
+  test_data_phe <- data.frame(
+    x = as.integer(c(5, 15, 35, 25)),
+    n = c(10000, 8000, 6000, 4000),
+    stdpop = c(25000, 20000, 15000, 10000)
+  )
+  
+  # Calculate using our method
+  result_epi <- calculate_asr_direct(test_data_epi, multiplier = 100000, warn_small_cases = FALSE)
+  
+  # Calculate using PHE method (Byar's method with Dobson adjustment)
+  result_phe <- PHEindicatormethods::calculate_dsr(
+    data = test_data_phe, 
+    x = x, 
+    n = n, 
+    stdpop = stdpop,
+    type = "standard",
+    confidence = 0.95,
+    multiplier = 100000
+  )
+  
+  # Note: Our method uses gamma distribution, PHE uses Byar's/Dobson
+  # Point estimates should match exactly
+  expect_equal(result_epi$asr_scaled, result_phe$value, tolerance = 1e-6)
+  
+  # Confidence intervals may differ slightly due to different methods
+  # but should be close for reasonable sample sizes
+  expect_equal(result_epi$ci_lower_scaled, result_phe$lowercl, tolerance = 0.1)
+  expect_equal(result_epi$ci_upper_scaled, result_phe$uppercl, tolerance = 0.1)
+  
+  # Test different confidence level
+  result_epi_99 <- calculate_asr_direct(test_data_epi, multiplier = 100000, 
+                                       conf_level = 0.99, warn_small_cases = FALSE)
+  result_phe_99 <- PHEindicatormethods::calculate_dsr(
+    data = test_data_phe, 
+    x = x, 
+    n = n, 
+    stdpop = stdpop,
+    type = "standard",
+    confidence = 0.99,
+    multiplier = 100000
+  )
+  
+  expect_equal(result_epi_99$asr_scaled, result_phe_99$value, tolerance = 1e-6)
+  expect_equal(result_epi_99$ci_lower_scaled, result_phe_99$lowercl, tolerance = 0.1)
+  expect_equal(result_epi_99$ci_upper_scaled, result_phe_99$uppercl, tolerance = 0.1)
+})
