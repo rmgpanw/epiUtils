@@ -13,6 +13,8 @@
 #'   - **standard_pop**: Standard population weights for each age group (numeric)
 #' @param conf_level Confidence level for confidence intervals (default: 0.95)
 #' @param multiplier Multiplier for rate expression (default: 100000 for rates per 100,000)
+#' @param warn_small_cases Logical. If TRUE (default), warns when age groups have < 5 cases
+#'   which may lead to unstable rate estimates. Consider wider age groups for more stable results.
 #'
 #' @return A tibble containing:
 #' - **crude_rate**: Crude incidence rate
@@ -35,6 +37,13 @@
 #'
 #' The direct standardisation method calculates ASR as:
 #' ASR = Σ(w_i × r_i) where w_i are standardised weights and r_i are age-specific rates
+#'
+#' **Age Grouping Considerations:**
+#' - Zero cases are allowed but may indicate very low incidence or small populations
+#' - Age groups with < 5 cases produce less stable rate estimates and wider confidence intervals
+#' - Consider wider age groups if many strata have very few cases
+#' - All age groups must have positive person-years (mathematical requirement)
+#' - The function balances statistical stability with age-specific precision
 #'
 #' @examples
 #' # Example data with required columns
@@ -63,7 +72,8 @@
 #' @export
 calculate_asr_direct <- function(.df,
                                  conf_level = 0.95,
-                                 multiplier = 100000) {
+                                 multiplier = 100000,
+                                 warn_small_cases = TRUE) {
   # Input validation
   if (!is.data.frame(.df)) {
     cli::cli_abort(c(
@@ -114,6 +124,37 @@ calculate_asr_direct <- function(.df,
       "x" = "Column 'standard_pop' must be numeric",
       "i" = "Currently has type: {.cls {typeof(.df$standard_pop)}}"
     ))
+  }
+
+  # Warn about small case counts (but allow them)
+  if (warn_small_cases) {
+    small_case_groups <- .df$events < 5 & .df$events > 0
+    zero_case_groups <- .df$events == 0
+    
+    if (any(small_case_groups)) {
+      small_ages <- .df$age_group[small_case_groups]
+      small_counts <- .df$events[small_case_groups]
+      n_small <- sum(small_case_groups)
+      
+      age_case_info <- paste(small_ages, " (", small_counts, " case", ifelse(small_counts == 1, "", "s"), ")", sep = "")
+      
+      cli::cli_warn(c(
+        "!" = "Found {n_small} age group{?s} with < 5 cases:",
+        "*" = "{.val {age_case_info}}",
+        "i" = "Small case counts may produce unstable rate estimates",
+        "i" = "Consider wider age groups for more stable results"
+      ))
+    }
+    
+    if (any(zero_case_groups)) {
+      zero_ages <- .df$age_group[zero_case_groups]
+      n_zero <- sum(zero_case_groups)
+      cli::cli_inform(c(
+        "i" = "Found {n_zero} age group{?s} with zero cases:",
+        "*" = "{.val {zero_ages}}",
+        "i" = "Zero cases are included in ASR calculation (rate = 0 for these groups)"
+      ))
+    }
   }
 
   # Check for non-negative values

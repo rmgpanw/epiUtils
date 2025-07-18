@@ -1,0 +1,303 @@
+---
+title: "Getting Started with epiUtils"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with epiUtils}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+```{r setup}
+library(epiUtils)
+library(dplyr)
+library(ggplot2)
+```
+
+# Introduction
+
+The `epiUtils` package provides essential tools for epidemiological analysis, including:
+
+- Age-standardised rate calculations using direct standardisation
+- Person-years computation for cohort studies with age stratification
+- Built-in WHO 2000-2025 World Standard Population data
+
+This vignette demonstrates the key functions using practical examples.
+
+# WHO World Standard Population
+
+The package includes the WHO 2000-2025 World Standard Population data, which is commonly used for age standardisation in epidemiological studies.
+
+```{r who-data}
+# Load the WHO standard population data
+data("who_2000_2025_standard_population")
+
+# View the structure
+head(who_2000_2025_standard_population)
+
+# Summary of the data
+str(who_2000_2025_standard_population)
+```
+
+# Example 1: Calculate Person-Years by Age Strata
+
+Let's start with an example of calculating person-years for a cohort study. We'll create some example data and then use the built-in function.
+
+```{r person-years-example}
+# Create example cohort data
+set.seed(123)
+n_patients <- 100
+
+cohort_data <- data.frame(
+  patient_id = 1:n_patients,
+  dob = as.Date("1950-01-01") + sample(-7300:7300, n_patients, replace = TRUE), # Random dates ±20 years
+  study_entry_date = as.Date("2020-01-01") + sample(0:365, n_patients, replace = TRUE),
+  study_exit_date = as.Date("2023-01-01") + sample(0:730, n_patients, replace = TRUE),
+  event_status = sample(c(0L, 1L), n_patients, replace = TRUE, prob = c(0.8, 0.2))
+)
+
+# Ensure study_exit_date is after study_entry_date
+cohort_data$study_exit_date <- pmax(
+  cohort_data$study_exit_date, 
+  cohort_data$study_entry_date + 30
+)
+
+# View first few rows
+head(cohort_data)
+
+# Calculate person-years by 5-year age groups (default)
+person_years_5yr <- calculate_person_years_by_age_strata(cohort_data)
+print(person_years_5yr)
+
+# Calculate person-years using custom age groups (10-year groups)
+person_years_10yr <- calculate_person_years_by_age_strata(
+  cohort_data, 
+  age_cut_points = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+)
+print(person_years_10yr)
+```
+
+# Example 2: Age-Standardised Rates with WHO Standard Population
+
+Now let's calculate age-standardised incidence rates using the WHO standard population. We'll use the person-years data we just calculated.
+
+```{r asr-example}
+# Prepare data for ASR calculation using WHO standard population
+# We need to match our age groups to the WHO standard population
+
+# First, let's see what age groups we have in our person-years data
+print("Age groups in our data:")
+print(person_years_10yr$age_group)
+
+print("Age groups in WHO standard population:")
+print(who_2000_2025_standard_population$age_group)
+
+# Create a mapping to match our 10-year age groups to WHO standard population
+# We'll aggregate WHO age groups to match our 10-year groups
+who_aggregated <- who_2000_2025_standard_population |>
+  mutate(
+    age_group_10yr = case_when(
+      lower_age_limit < 10 ~ "[0-10)",
+      lower_age_limit < 20 ~ "[10-20)",
+      lower_age_limit < 30 ~ "[20-30)",
+      lower_age_limit < 40 ~ "[30-40)",
+      lower_age_limit < 50 ~ "[40-50)",
+      lower_age_limit < 60 ~ "[50-60)",
+      lower_age_limit < 70 ~ "[60-70)",
+      lower_age_limit < 80 ~ "[70-80)",
+      lower_age_limit < 90 ~ "[80-90)",
+      TRUE ~ "[90-100)"
+    )
+  ) |>
+  group_by(age_group_10yr) |>
+  summarise(
+    standard_pop = sum(standard_for_seer_stat),
+    .groups = "drop"
+  )
+
+print("Aggregated WHO standard population:")
+print(who_aggregated)
+
+# Merge with our person-years data
+asr_data <- person_years_10yr |>
+  left_join(who_aggregated, by = c("age_group" = "age_group_10yr")) |>
+  filter(!is.na(standard_pop)) |>  # Remove any age groups not in WHO data
+  filter(person_years > 0) |>  # Ensure positive person-years for all groups
+  select(age_group, events, person_years, standard_pop)
+
+print("Data prepared for ASR calculation:")
+print(asr_data)
+
+# Calculate age-standardised rates
+asr_result <- calculate_asr_direct(asr_data)
+
+# Display results
+print("Age-Standardised Rate Results:")
+print(paste("Crude rate:", round(asr_result$crude_rate_scaled, 2), "per 100,000"))
+print(paste("Age-standardised rate:", round(asr_result$asr_scaled, 2), "per 100,000"))
+print(paste("95% CI:", round(asr_result$ci_lower_scaled, 2), "-", round(asr_result$ci_upper_scaled, 2)))
+
+# View age-specific details
+print("Age-specific details:")
+print(asr_result$age_specific_data[[1]])
+
+# Note: We filtered out age groups with zero person-years above
+# The function requires positive person-years but allows zero/small case counts
+```
+
+## Handling Small Case Counts
+
+The `calculate_asr_direct()` function includes built-in warnings for small case counts, which help users make informed decisions about age grouping strategies.
+
+```{r small-cases-demo}
+# Create example data with small case counts to demonstrate warnings
+small_cases_data <- data.frame(
+  age_group = c("0-20", "20-40", "40-60", "60-80"),
+  events = c(0L, 2L, 4L, 15L),  # Mix of zero and small case counts
+  person_years = c(10000, 15000, 20000, 18000),
+  standard_pop = c(25000, 30000, 20000, 15000)
+)
+
+print("Data with small case counts:")
+print(small_cases_data)
+
+# Calculate ASR - will show warnings about small case counts
+print("With warnings (default):")
+result_with_warnings <- calculate_asr_direct(small_cases_data)
+
+# Calculate ASR with warnings disabled
+print("With warnings disabled:")
+result_no_warnings <- calculate_asr_direct(small_cases_data, warn_small_cases = FALSE)
+
+# Results are identical regardless of warning setting
+print(paste("ASR:", round(result_with_warnings$asr_scaled, 2), "per 100,000"))
+```
+
+# Example 3: Using WHO Standard Population Directly
+
+For a more straightforward example, let's create some synthetic cancer incidence data that directly matches the WHO standard population age groups.
+
+```{r direct-who-example}
+# Create synthetic cancer incidence data using WHO age groups
+set.seed(456)
+
+# Use WHO age groups directly (first 15 age groups, up to 75+)
+cancer_data <- who_2000_2025_standard_population |>
+  slice(1:15) |>  # Use first 15 age groups (0-74)
+  mutate(
+    # Simulate population sizes (person-years)
+    person_years = round(runif(n(), min = 50000, max = 200000)),
+    # Simulate cancer cases with age-specific rates
+    # Higher rates in older age groups
+    age_specific_rate = case_when(
+      lower_age_limit < 20 ~ runif(1, 0.00001, 0.00005),
+      lower_age_limit < 40 ~ runif(1, 0.00005, 0.0002),
+      lower_age_limit < 60 ~ runif(1, 0.0002, 0.001),
+      TRUE ~ runif(1, 0.001, 0.003)
+    ),
+    events = as.integer(round(person_years * age_specific_rate))
+  ) |>
+  select(age_group, events, person_years, standard_pop = standard_for_seer_stat)
+
+print("Synthetic cancer incidence data:")
+print(cancer_data)
+
+# Calculate age-standardised incidence rates
+cancer_asr <- calculate_asr_direct(cancer_data)
+
+print("Cancer Incidence Results:")
+print(paste("Crude incidence rate:", round(cancer_asr$crude_rate_scaled, 1), "per 100,000"))
+print(paste("Age-standardised incidence rate:", round(cancer_asr$asr_scaled, 1), "per 100,000"))
+print(paste("95% CI:", round(cancer_asr$ci_lower_scaled, 1), "-", round(cancer_asr$ci_upper_scaled, 1), "per 100,000"))
+```
+
+# Visualization
+
+Let's create some visualizations to better understand our results.
+
+```{r visualization}
+# Plot age-specific rates
+age_specific_data <- cancer_asr$age_specific_data[[1]]
+
+# Age-specific rates plot
+p1 <- ggplot(age_specific_data, aes(x = age_group, y = age_specific_rate_scaled)) +
+  geom_col(fill = "steelblue", alpha = 0.7) +
+  theme_minimal() +
+  labs(
+    title = "Age-Specific Cancer Incidence Rates",
+    x = "Age Group",
+    y = "Rate per 100,000"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(p1)
+
+# Contribution to ASR plot
+p2 <- ggplot(age_specific_data, aes(x = age_group, y = contribution_to_asr * 100000)) +
+  geom_col(fill = "darkgreen", alpha = 0.7) +
+  theme_minimal() +
+  labs(
+    title = "Contribution of Each Age Group to Age-Standardised Rate",
+    x = "Age Group",
+    y = "Contribution per 100,000"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(p2)
+
+# Compare crude vs age-standardised rates
+comparison_data <- data.frame(
+  Rate_Type = c("Crude Rate", "Age-Standardised Rate"),
+  Rate = c(cancer_asr$crude_rate_scaled, cancer_asr$asr_scaled),
+  CI_Lower = c(NA, cancer_asr$ci_lower_scaled),
+  CI_Upper = c(NA, cancer_asr$ci_upper_scaled)
+)
+
+p3 <- ggplot(comparison_data, aes(x = Rate_Type, y = Rate)) +
+  geom_col(fill = c("orange", "purple"), alpha = 0.7, width = 0.5) +
+  geom_errorbar(
+    aes(ymin = CI_Lower, ymax = CI_Upper), 
+    width = 0.2, 
+    na.rm = TRUE
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Crude vs Age-Standardised Cancer Incidence Rates",
+    x = "Rate Type",
+    y = "Rate per 100,000"
+  )
+
+print(p3)
+```
+
+# Key Features Summary
+
+## `calculate_person_years_by_age_strata()`
+
+- Calculates person-years of follow-up by age groups
+- Handles age transitions during follow-up period
+- Flexible age group definitions
+- Returns events and person-years by age strata
+
+## `calculate_asr_direct()`
+
+- Calculates age-standardised rates using direct standardisation
+- Uses gamma distribution for confidence intervals
+- Requires data with columns: `age_group`, `events`, `person_years`, `standard_pop`
+- Returns comprehensive results including crude rates, ASRs, and confidence intervals
+
+## WHO Standard Population Data
+
+- Ready-to-use WHO 2000-2025 World Standard Population
+- Multiple standard population formats available
+- Easily integrates with the package functions
+
+This vignette demonstrates the basic usage of the key functions in `epiUtils`. For more detailed information about specific functions, see their individual help pages.

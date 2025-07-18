@@ -8,6 +8,13 @@
 \description{
 A collection of utility functions for epidemiological analysis, including age-standardised rate calculations, person-years computation, and other common epidemiological methods for cohort and population-based studies.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://rmgpanw.github.io/epiUtils/}
+}
+
+}
 \author{
 \strong{Maintainer}: Alasdair Warwick \email{alasdair.warwick.19@ucl.ac.uk} (\href{https://orcid.org/0000-0002-0800-2890}{ORCID}) [copyright holder]
 

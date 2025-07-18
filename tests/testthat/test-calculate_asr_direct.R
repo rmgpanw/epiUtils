@@ -40,7 +40,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
 
   our_result1 <- calculate_asr_direct(
     .df = df1,
-    multiplier = 1 # Epitools returns raw rates, then multiplied later
+    multiplier = 1, # Epitools returns raw rates, then multiplied later
+    warn_small_cases = FALSE # Suppress warnings for test validation
   )
   epitools_result1 <- epitools::ageadjust.direct(
     count = count_matrix[, 1],
@@ -59,7 +60,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   df2 <- prep_data_for_epiutils(count_matrix[, 2], population_matrix[, 2], standard_pop_epitools)
   our_result2 <- calculate_asr_direct(
     .df = df2,
-    multiplier = 1
+    multiplier = 1,
+    warn_small_cases = FALSE
   )
   epitools_result2 <- epitools::ageadjust.direct(
     count = count_matrix[, 2],
@@ -74,7 +76,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   df3 <- prep_data_for_epiutils(count_matrix[, 3], population_matrix[, 3], standard_pop_epitools)
   our_result3 <- calculate_asr_direct(
     .df = df3,
-    multiplier = 1
+    multiplier = 1,
+    warn_small_cases = FALSE
   )
   epitools_result3 <- epitools::ageadjust.direct(
     count = count_matrix[, 3],
@@ -89,7 +92,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   df4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
   our_result4 <- calculate_asr_direct(
     .df = df4,
-    multiplier = 1
+    multiplier = 1,
+    warn_small_cases = FALSE
   )
   epitools_result4 <- epitools::ageadjust.direct(
     count = count_matrix[, 4],
@@ -104,7 +108,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   df5p <- prep_data_for_epiutils(count_matrix[, 5], population_matrix[, 5], standard_pop_epitools)
   our_result5p <- calculate_asr_direct(
     .df = df5p,
-    multiplier = 1
+    multiplier = 1,
+    warn_small_cases = FALSE
   )
   epitools_result5p <- epitools::ageadjust.direct(
     count = count_matrix[, 5],
@@ -115,4 +120,90 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   expect_equal(our_result5p$ci_lower, as.numeric(epitools_result5p["lci"]), tolerance = 1e-6)
   expect_equal(our_result5p$ci_upper, as.numeric(epitools_result5p["uci"]), tolerance = 1e-6)
 
+})
+
+test_that("calculate_asr_direct warnings are triggered correctly", {
+  
+  # Set up test data (same as main validation test)
+  population_raw <- c(230061, 329449, 114920, 39487, 14208, 3052,
+                      72202, 326701, 208667, 83228, 28466, 5375,
+                      15050, 175702, 207081, 117300, 45026, 8660,
+                      2293, 68800, 132424, 98301, 46075, 9834,
+                      327, 30666, 123419, 149919, 104088, 34392,
+                      319933, 931318, 786511, 488235, 237863, 61313)
+
+  population_matrix <- matrix(population_raw, 6, 6,
+                              dimnames = list(c("Under 20", "20-24", "25-29", "30-34", "35-39", "40 and over"),
+                                              c("1", "2", "3", "4", "5+", "Total")))
+
+  count_raw <- c(107, 141, 60, 40, 39, 25,
+                 25, 150, 110, 84, 82, 39,
+                 3, 71, 114, 103, 108, 75,
+                 1, 26, 64, 89, 137, 96,
+                 0, 8, 63, 112, 262, 295,
+                 136, 396, 411, 428, 628, 530)
+  count_matrix <- matrix(count_raw, 6, 6,
+                         dimnames = list(c("Under 20", "20-24", "25-29", "30-34", "35-39", "40 and over"),
+                                         c("1", "2", "3", "4", "5+", "Total")))
+
+  standard_pop_epitools <- apply(population_matrix[, -6], 1, mean)
+  
+  prep_data_for_epiutils <- function(cases_vec, pop_vec, std_pop_vec) {
+    data.frame(
+      age_group = rownames(population_matrix)[1:6],
+      events = as.integer(cases_vec),
+      person_years = pop_vec,
+      standard_pop = std_pop_vec
+    )
+  }
+  
+  # Test data from Birth Order 5+ which has zero cases in "Under 20" group
+  df5p <- prep_data_for_epiutils(count_matrix[, 5], population_matrix[, 5], standard_pop_epitools)
+  
+  # Should warn about zero cases (informational message)
+  expect_message(
+    calculate_asr_direct(df5p, multiplier = 1, warn_small_cases = TRUE),
+    "Found 1 age group.*zero cases.*Under 20"
+  )
+  
+  # Test data from Birth Order 3 which has 3 cases in "Under 20" (small case count)
+  df3 <- prep_data_for_epiutils(count_matrix[, 3], population_matrix[, 3], standard_pop_epitools)
+  
+  # Should warn about small case counts
+  expect_warning(
+    calculate_asr_direct(df3, multiplier = 1, warn_small_cases = TRUE),
+    "Found 1 age group.*< 5 cases.*Under 20.*3 case"
+  )
+  
+  # Should include guidance message
+  expect_warning(
+    calculate_asr_direct(df3, multiplier = 1, warn_small_cases = TRUE),
+    "Consider wider age groups"
+  )
+  
+  # Test data from Birth Order 4 which has 1 case in "Under 20" (small case count)
+  df4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
+  
+  # Should warn about small case counts with singular "case"
+  expect_warning(
+    calculate_asr_direct(df4, multiplier = 1, warn_small_cases = TRUE),
+    "Found 1 age group.*< 5 cases.*Under 20.*1 case"
+  )
+  
+  # When warn_small_cases = FALSE, no warnings should be produced
+  expect_silent(
+    calculate_asr_direct(df5p, multiplier = 1, warn_small_cases = FALSE)
+  )
+  
+  expect_silent(
+    calculate_asr_direct(df3, multiplier = 1, warn_small_cases = FALSE)
+  )
+  
+  # Results should be identical regardless of warning setting
+  result_with_warnings <- calculate_asr_direct(df3, multiplier = 1, warn_small_cases = TRUE)
+  result_without_warnings <- calculate_asr_direct(df3, multiplier = 1, warn_small_cases = FALSE)
+  
+  expect_equal(result_with_warnings$asr, result_without_warnings$asr)
+  expect_equal(result_with_warnings$ci_lower, result_without_warnings$ci_lower)
+  expect_equal(result_with_warnings$ci_upper, result_without_warnings$ci_upper)
 })

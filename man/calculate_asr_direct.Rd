@@ -4,7 +4,12 @@
 \alias{calculate_asr_direct}
 \title{Calculate Age-Standardised Incidence Rates with Confidence Intervals}
 \usage{
-calculate_asr_direct(.df, conf_level = 0.95, multiplier = 1e+05)
+calculate_asr_direct(
+  .df,
+  conf_level = 0.95,
+  multiplier = 1e+05,
+  warn_small_cases = TRUE
+)
 }
 \arguments{
 \item{.df}{A data frame containing age-specific case counts, population data,
@@ -19,6 +24,9 @@ and standard population weights. Must contain the following columns:
 \item{conf_level}{Confidence level for confidence intervals (default: 0.95)}
 
 \item{multiplier}{Multiplier for rate expression (default: 100000 for rates per 100,000)}
+
+\item{warn_small_cases}{Logical. If TRUE (default), warns when age groups have < 5 cases
+which may lead to unstable rate estimates. Consider wider age groups for more stable results.}
 }
 \value{
 A tibble containing:
@@ -50,6 +58,15 @@ appropriate for rate data.
 
 The direct standardisation method calculates ASR as:
 ASR = Σ(w_i × r_i) where w_i are standardised weights and r_i are age-specific rates
+
+\strong{Age Grouping Considerations:}
+\itemize{
+\item Zero cases are allowed but may indicate very low incidence or small populations
+\item Age groups with < 5 cases produce less stable rate estimates and wider confidence intervals
+\item Consider wider age groups if many strata have very few cases
+\item All age groups must have positive person-years (mathematical requirement)
+\item The function balances statistical stability with age-specific precision
+}
 }
 \examples{
 # Example data with required columns
