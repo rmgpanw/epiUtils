@@ -8,6 +8,7 @@
 [![Codecov test
 coverage](https://codecov.io/gh/rmgpanw/epiUtils/graph/badge.svg)](https://app.codecov.io/gh/rmgpanw/epiUtils)
 [![R-CMD-check](https://github.com/rmgpanw/epiUtils/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rmgpanw/epiUtils/actions/workflows/R-CMD-check.yaml)
+[![pkgdown.yaml](https://github.com/rmgpanw/epiUtils/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/rmgpanw/epiUtils/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 `epiUtils` provides essential tools for epidemiological analysis,
