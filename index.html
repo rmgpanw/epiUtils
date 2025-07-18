@@ -56,7 +56,7 @@
 </h2>
 <ul>
 <li>
-<strong>Age-Standardised Rates</strong>: Calculate directly standardised rates with gamma-based confidence intervals</li>
+<strong>Age-Standardised Rates</strong>: Calculate directly standardised rates with gamma or Byar’s confidence intervals</li>
 <li>
 <strong>Person-Years Calculation</strong>: Compute person-years by age strata with automatic age-transition handling</li>
 <li>
@@ -91,10 +91,10 @@
 <span></span>
 <span><span class="co"># Calculate age-standardised rates</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_asr_direct.html">calculate_asr_direct</a></span><span class="op">(</span><span class="va">cancer_data</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: ! Found 1 age group with &lt; 5 cases:</span></span>
-<span><span class="co">#&gt; • "0-19 (2 cases)"</span></span>
-<span><span class="co">#&gt; ℹ Small case counts may produce unstable rate estimates</span></span>
-<span><span class="co">#&gt; ℹ Consider wider age groups for more stable results</span></span>
+<span><span class="co">#&gt; Warning: ! Found age groups with small/zero case counts:</span></span>
+<span><span class="co">#&gt; • &lt; 5 cases: 0-19 (2 cases)</span></span>
+<span><span class="co">#&gt; ℹ Small and zero case counts may produce unstable rate estimates</span></span>
+<span><span class="co">#&gt; ℹ Consider wider age groups, longer follow-up, or data quality checks</span></span>
 <span></span>
 <span><span class="co"># View results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Age-Standardised Rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">asr_scaled</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"per 100,000\n"</span><span class="op">)</span></span>
@@ -173,7 +173,7 @@
 <div class="section level3">
 <h3 id="smart-case-count-handling">Smart Case Count Handling<a class="anchor" aria-label="anchor" href="#smart-case-count-handling"></a>
 </h3>
-<p>Warnings are raised for small case counts while allowing users to make informed decisions:</p>
+<p>Warnings are raised for small case counts:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Data with small case counts</span></span>
 <span><span class="va">small_counts_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -185,22 +185,35 @@
 <span></span>
 <span><span class="co"># Calculate with warnings (default)</span></span>
 <span><span class="va">result_with_warnings</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_asr_direct.html">calculate_asr_direct</a></span><span class="op">(</span><span class="va">small_counts_data</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: ! Found 1 age group with &lt; 5 cases:</span></span>
-<span><span class="co">#&gt; • "20-40 (3 cases)"</span></span>
-<span><span class="co">#&gt; ℹ Small case counts may produce unstable rate estimates</span></span>
-<span><span class="co">#&gt; ℹ Consider wider age groups for more stable results</span></span>
-<span><span class="co">#&gt; ℹ Found 1 age group with zero cases:</span></span>
-<span><span class="co">#&gt; • "0-20"</span></span>
-<span><span class="co">#&gt; ℹ Zero cases are included in ASR calculation (rate = 0 for these groups)</span></span>
+<span><span class="co">#&gt; Warning: ! Found age groups with small/zero case counts:</span></span>
+<span><span class="co">#&gt; • zero cases: 0-20 and &lt; 5 cases: 20-40 (3 cases)</span></span>
+<span><span class="co">#&gt; ℹ Small and zero case counts may produce unstable rate estimates</span></span>
+<span><span class="co">#&gt; ℹ Consider wider age groups, longer follow-up, or data quality checks</span></span>
 <span></span>
 <span><span class="co"># Calculate silently when appropriate</span></span>
 <span><span class="va">result_silent</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_asr_direct.html">calculate_asr_direct</a></span><span class="op">(</span><span class="va">small_counts_data</span>, warn_small_cases <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
+<h3 id="confidence-interval-methods">Confidence Interval Methods<a class="anchor" aria-label="anchor" href="#confidence-interval-methods"></a>
+</h3>
+<p>Choose between two confidence interval calculation methods:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Gamma method (default) - more conservative for small counts and low rates</span></span>
+<span><span class="va">result_gamma</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_asr_direct.html">calculate_asr_direct</a></span><span class="op">(</span><span class="va">small_counts_data</span>, warn_small_cases <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Byar's/Dobson method - traditional epidemiological approach  </span></span>
+<span><span class="va">result_byars</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_asr_direct.html">calculate_asr_direct</a></span><span class="op">(</span><span class="va">small_counts_data</span>, ci_method <span class="op">=</span> <span class="st">"byars"</span>, warn_small_cases <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Gamma CI:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">result_gamma</span><span class="op">$</span><span class="va">ci_lower_scaled</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">result_gamma</span><span class="op">$</span><span class="va">ci_upper_scaled</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Gamma CI: 22.5 - 60.5</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Byar's CI:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">result_byars</span><span class="op">$</span><span class="va">ci_lower_scaled</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">result_byars</span><span class="op">$</span><span class="va">ci_upper_scaled</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Byar's CI: 19.9 - 55.9</span></span></code></pre></div>
+</div>
+<div class="section level3">
 <h3 id="integration-with-standard-populations">Integration with Standard Populations<a class="anchor" aria-label="anchor" href="#integration-with-standard-populations"></a>
 </h3>
 <p>Easily combine your data with WHO standard populations:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Using WHO standard population directly</span></span>
 <span><span class="va">who_subset</span> <span class="op">&lt;-</span> <span class="va">who_2000_2025_standard_population</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="op">]</span></span>
 <span></span>
@@ -224,7 +237,7 @@
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
 <p>When using <code>epiUtils</code> in publications, please cite:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"epiUtils"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
