@@ -110,12 +110,16 @@ for more stable results.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A tibble containing:</p><ul><li><p><strong>crude_rate</strong>: Crude incidence rate</p></li>
 <li><p><strong>crude_rate_scaled</strong>: Crude rate multiplied by multiplier</p></li>
+<li><p><strong>crude_ci_lower</strong>: Lower confidence interval bound for crude rate</p></li>
+<li><p><strong>crude_ci_upper</strong>: Upper confidence interval bound for crude rate</p></li>
+<li><p><strong>crude_ci_lower_scaled</strong>: Lower crude CI multiplied by multiplier</p></li>
+<li><p><strong>crude_ci_upper_scaled</strong>: Upper crude CI multiplied by multiplier</p></li>
 <li><p><strong>asr</strong>: Age-standardised incidence rate</p></li>
 <li><p><strong>asr_scaled</strong>: ASR multiplied by multiplier</p></li>
-<li><p><strong>ci_lower</strong>: Lower confidence interval bound for ASR</p></li>
-<li><p><strong>ci_upper</strong>: Upper confidence interval bound for ASR</p></li>
-<li><p><strong>ci_lower_scaled</strong>: Lower CI multiplied by multiplier</p></li>
-<li><p><strong>ci_upper_scaled</strong>: Upper CI multiplied by multiplier</p></li>
+<li><p><strong>asr_ci_lower</strong>: Lower confidence interval bound for ASR</p></li>
+<li><p><strong>asr_ci_upper</strong>: Upper confidence interval bound for ASR</p></li>
+<li><p><strong>asr_ci_lower_scaled</strong>: Lower ASR CI multiplied by multiplier</p></li>
+<li><p><strong>asr_ci_upper_scaled</strong>: Upper ASR CI multiplied by multiplier</p></li>
 <li><p><strong>conf_level</strong>: Confidence level used</p></li>
 <li><p><strong>total_events</strong>: Total number of events across all age groups</p></li>
 <li><p><strong>total_person_years</strong>: Total person-years across all age groups</p></li>
@@ -123,10 +127,15 @@ for more stable results.</p></dd>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The function uses the gamma distribution method for confidence
-interval calculation, which is the standard approach in epidemiological
-software like epitools. This method naturally prevents negative confidence
-interval bounds and is appropriate for rate data.</p>
+    <p>The function calculates both crude and age-standardised rates with
+confidence intervals using established methods:</p>
+<p><strong>Crude Rate Confidence Intervals:</strong> Uses Wilson score intervals via
+<code><a href="https://rdrr.io/r/stats/prop.test.html" class="external-link">prop.test()</a></code>, which is appropriate for proportions/rates and provides
+better coverage than normal approximation, especially for small counts.</p>
+<p><strong>Age-Standardised Rate Confidence Intervals:</strong> Uses either gamma
+distribution (default) or Byar's method, both standard approaches in
+epidemiological software. The gamma method naturally prevents negative
+confidence interval bounds and is appropriate for rate data.</p>
 <p>The direct standardisation method calculates ASR as: ASR = Σ(w_i × r_i)
 where w_i are standardised weights and r_i are age-specific rates</p>
 <p><strong>Incidence vs Prevalence:</strong></p><ul><li><p><strong>Incidence rates</strong>: Use person-years of follow-up in denominator, typically expressed per 100,000</p></li>
