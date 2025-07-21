@@ -33,7 +33,7 @@ You can install the development version of epiUtils from
 
 ``` r
 # install.packages("pak")
-pak::pak("alasdair/epiUtils")
+pak::pak("rmgpanw/epiUtils")
 ```
 
 ## Quick Start

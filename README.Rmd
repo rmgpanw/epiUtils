@@ -35,7 +35,7 @@ You can install the development version of epiUtils from [GitHub](https://github
 
 ``` r
 # install.packages("pak")
-pak::pak("alasdair/epiUtils")
+pak::pak("rmgpanw/epiUtils")
 ```
 
 ## Quick Start
