@@ -1,19 +1,19 @@
 #' Calculate Age-Standardised Rates with Confidence Intervals
 #'
-#' This function calculates age-standardised rates using the direct 
-#' standardisation method with confidence intervals. It can be used for both 
-#' incidence rates (events over time) and prevalence rates (cross-sectional 
-#' data). The gamma method is preferred for confidence intervals as it naturally 
-#' prevents negative bounds and is the standard approach in epidemiological 
+#' This function calculates age-standardised rates using the direct
+#' standardisation method with confidence intervals. It can be used for both
+#' incidence rates (events over time) and prevalence rates (cross-sectional
+#' data). The gamma method is preferred for confidence intervals as it naturally
+#' prevents negative bounds and is the standard approach in epidemiological
 #' literature.
 #'
 #' @param .df A data frame containing age-specific case counts, population data,
 #'   and standard population weights. Must contain the following columns:
 #'   - **age_group**: Age group labels
-#'   - **events**: Number of events/cases in each age group (integer). For incidence: 
+#'   - **events**: Number of events/cases in each age group (integer). For incidence:
 #'     new cases over time. For prevalence: individuals with condition at a point in time.
-#'   - **person_years**: Person-years of follow-up (incidence) or population size 
-#'     (prevalence) in each age group (numeric). For prevalence studies, use the 
+#'   - **person_years**: Person-years of follow-up (incidence) or population size
+#'     (prevalence) in each age group (numeric). For prevalence studies, use the
 #'     total number of individuals examined/surveyed.
 #'   - **standard_pop**: Standard population weights for each age group (numeric)
 #' @param conf_level Confidence level for confidence intervals (default: 0.95)
@@ -27,29 +27,40 @@
 #'   [PHEindicatormethods](https://CRAN.R-project.org/package=PHEindicatormethods)).
 #'   Both methods are statistically valid; differences are typically minimal.
 #' @param warn_small_cases Logical. If TRUE (default), warns when age groups
-#'   have zero or < 5 cases which may lead to unstable rate estimates, and warns 
-#'   when age groups with zero person-years are automatically excluded. Set to 
-#'   FALSE to suppress these data quality warnings. Consider wider age groups 
+#'   have zero or < 5 cases which may lead to unstable rate estimates, and warns
+#'   when age groups with zero person-years are automatically excluded. Set to
+#'   FALSE to suppress these data quality warnings. Consider wider age groups
 #'   for more stable results.
 #'
 #' @return A tibble containing:
 #' - **crude_rate**: Crude incidence rate
 #' - **crude_rate_scaled**: Crude rate multiplied by multiplier
+#' - **crude_ci_lower**: Lower confidence interval bound for crude rate
+#' - **crude_ci_upper**: Upper confidence interval bound for crude rate
+#' - **crude_ci_lower_scaled**: Lower crude CI multiplied by multiplier
+#' - **crude_ci_upper_scaled**: Upper crude CI multiplied by multiplier
 #' - **asr**: Age-standardised incidence rate
 #' - **asr_scaled**: ASR multiplied by multiplier
-#' - **ci_lower**: Lower confidence interval bound for ASR
-#' - **ci_upper**: Upper confidence interval bound for ASR
-#' - **ci_lower_scaled**: Lower CI multiplied by multiplier
-#' - **ci_upper_scaled**: Upper CI multiplied by multiplier
+#' - **asr_ci_lower**: Lower confidence interval bound for ASR
+#' - **asr_ci_upper**: Upper confidence interval bound for ASR
+#' - **asr_ci_lower_scaled**: Lower ASR CI multiplied by multiplier
+#' - **asr_ci_upper_scaled**: Upper ASR CI multiplied by multiplier
 #' - **conf_level**: Confidence level used
 #' - **total_events**: Total number of events across all age groups
 #' - **total_person_years**: Total person-years across all age groups
 #' - **age_specific_data**: Data frame with age-specific rates and details
 #'
-#' @details The function uses the gamma distribution method for confidence
-#'   interval calculation, which is the standard approach in epidemiological
-#'   software like epitools. This method naturally prevents negative confidence
-#'   interval bounds and is appropriate for rate data.
+#' @details The function calculates both crude and age-standardised rates with
+#'   confidence intervals using established methods:
+#'
+#'   **Crude Rate Confidence Intervals:** Uses Wilson score intervals via
+#'   `prop.test()`, which is appropriate for proportions/rates and provides
+#'   better coverage than normal approximation, especially for small counts.
+#'
+#'   **Age-Standardised Rate Confidence Intervals:** Uses either gamma
+#'   distribution (default) or Byar's method, both standard approaches in
+#'   epidemiological software. The gamma method naturally prevents negative
+#'   confidence interval bounds and is appropriate for rate data.
 #'
 #'   The direct standardisation method calculates ASR as: ASR = Σ(w_i × r_i)
 #'   where w_i are standardised weights and r_i are age-specific rates
@@ -95,9 +106,6 @@
 #'   cancer research. Volume II--The design and analysis of cohort studies. IARC
 #'   scientific publications, (82), 1-406.
 #'
-#' @importFrom dplyr mutate select pull everything all_of
-#' @importFrom tibble tibble
-#' @importFrom stats qgamma qchisq
 #' @export
 calculate_asr_direct <- function(.df,
                                  conf_level = 0.95,
@@ -180,7 +188,7 @@ calculate_asr_direct <- function(.df,
   if (any(zero_py_groups)) {
     zero_py_ages <- .df$age_group[zero_py_groups]
     n_excluded <- sum(zero_py_groups)
-    
+
     if (warn_small_cases) {
       cli::cli_warn(c(
         "!" = "Excluding {n_excluded} age group{?s} with zero person-years:",
@@ -188,10 +196,10 @@ calculate_asr_direct <- function(.df,
         "i" = "Age-standardised rates can only be calculated for groups with positive person-years"
       ))
     }
-    
+
     # Filter out zero person-years groups
     .df <- .df[!zero_py_groups, , drop = FALSE]
-    
+
     # Check if any data remains
     if (nrow(.df) == 0) {
       cli::cli_abort(c(
@@ -280,6 +288,14 @@ calculate_asr_direct <- function(.df,
   crude_rate <- total_cases / total_population
   asr <- sum(asr_data$expected_cases) / total_std_pop
 
+  # Calculate crude rate confidence intervals using prop.test()
+  # Use Wilson score intervals (better than normal approximation)
+  crude_prop_test <- stats::prop.test(x = total_cases, n = total_population,
+                                     conf.level = conf_level,
+                                     correct = TRUE)
+  crude_ci_lower <- crude_prop_test$conf.int[1]
+  crude_ci_upper <- crude_prop_test$conf.int[2]
+
   # Calculate confidence intervals using gamma method
   alpha <- 1 - conf_level
 
@@ -367,12 +383,16 @@ calculate_asr_direct <- function(.df,
   tibble::tibble(
     crude_rate = crude_rate,
     crude_rate_scaled = crude_rate * multiplier,
+    crude_ci_lower = crude_ci_lower,
+    crude_ci_upper = crude_ci_upper,
+    crude_ci_lower_scaled = crude_ci_lower * multiplier,
+    crude_ci_upper_scaled = crude_ci_upper * multiplier,
     asr = asr,
     asr_scaled = asr * multiplier,
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    ci_lower_scaled = ci_lower * multiplier,
-    ci_upper_scaled = ci_upper * multiplier,
+    asr_ci_lower = ci_lower,
+    asr_ci_upper = ci_upper,
+    asr_ci_lower_scaled = ci_lower * multiplier,
+    asr_ci_upper_scaled = ci_upper * multiplier,
     conf_level = conf_level,
     total_events = total_events,
     total_person_years = total_person_years,

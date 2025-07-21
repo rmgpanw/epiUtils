@@ -54,9 +54,9 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
   # Check ASR (mean)
   expect_equal(our_result1$asr, as.numeric(epitools_result1["adj.rate"]), tolerance = 1e-6)
   # Check lower CI
-  expect_equal(our_result1$ci_lower, as.numeric(epitools_result1["lci"]), tolerance = 1e-6)
+  expect_equal(our_result1$asr_ci_lower, as.numeric(epitools_result1["lci"]), tolerance = 1e-6)
   # Check upper CI
-  expect_equal(our_result1$ci_upper, as.numeric(epitools_result1["uci"]), tolerance = 1e-6)
+  expect_equal(our_result1$asr_ci_upper, as.numeric(epitools_result1["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 2 ---
   df2 <- prep_data_for_epiutils(count_matrix[, 2], population_matrix[, 2], standard_pop_epitools)
@@ -71,8 +71,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
     stdpop = standard_pop_epitools
   )
   expect_equal(our_result2$asr, as.numeric(epitools_result2["adj.rate"]), tolerance = 1e-6)
-  expect_equal(our_result2$ci_lower, as.numeric(epitools_result2["lci"]), tolerance = 1e-6)
-  expect_equal(our_result2$ci_upper, as.numeric(epitools_result2["uci"]), tolerance = 1e-6)
+  expect_equal(our_result2$asr_ci_lower, as.numeric(epitools_result2["lci"]), tolerance = 1e-6)
+  expect_equal(our_result2$asr_ci_upper, as.numeric(epitools_result2["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 3 ---
   df3 <- prep_data_for_epiutils(count_matrix[, 3], population_matrix[, 3], standard_pop_epitools)
@@ -87,8 +87,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
     stdpop = standard_pop_epitools
   )
   expect_equal(our_result3$asr, as.numeric(epitools_result3["adj.rate"]), tolerance = 1e-6)
-  expect_equal(our_result3$ci_lower, as.numeric(epitools_result3["lci"]), tolerance = 1e-6)
-  expect_equal(our_result3$ci_upper, as.numeric(epitools_result3["uci"]), tolerance = 1e-6)
+  expect_equal(our_result3$asr_ci_lower, as.numeric(epitools_result3["lci"]), tolerance = 1e-6)
+  expect_equal(our_result3$asr_ci_upper, as.numeric(epitools_result3["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 4 ---
   df4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
@@ -103,8 +103,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
     stdpop = standard_pop_epitools
   )
   expect_equal(our_result4$asr, as.numeric(epitools_result4["adj.rate"]), tolerance = 1e-6)
-  expect_equal(our_result4$ci_lower, as.numeric(epitools_result4["lci"]), tolerance = 1e-6)
-  expect_equal(our_result4$ci_upper, as.numeric(epitools_result4["uci"]), tolerance = 1e-6)
+  expect_equal(our_result4$asr_ci_lower, as.numeric(epitools_result4["lci"]), tolerance = 1e-6)
+  expect_equal(our_result4$asr_ci_upper, as.numeric(epitools_result4["uci"]), tolerance = 1e-6)
 
   # --- Birth Order 5+ ---
   df5p <- prep_data_for_epiutils(count_matrix[, 5], population_matrix[, 5], standard_pop_epitools)
@@ -119,8 +119,8 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
     stdpop = standard_pop_epitools
   )
   expect_equal(our_result5p$asr, as.numeric(epitools_result5p["adj.rate"]), tolerance = 1e-6)
-  expect_equal(our_result5p$ci_lower, as.numeric(epitools_result5p["lci"]), tolerance = 1e-6)
-  expect_equal(our_result5p$ci_upper, as.numeric(epitools_result5p["uci"]), tolerance = 1e-6)
+  expect_equal(our_result5p$asr_ci_lower, as.numeric(epitools_result5p["lci"]), tolerance = 1e-6)
+  expect_equal(our_result5p$asr_ci_upper, as.numeric(epitools_result5p["uci"]), tolerance = 1e-6)
 
 })
 
@@ -260,8 +260,8 @@ test_that("calculate_asr_direct warnings are triggered correctly", {
   result_without_warnings <- calculate_asr_direct(df3, multiplier = 1, warn_small_cases = FALSE)
 
   expect_equal(result_with_warnings$asr, result_without_warnings$asr)
-  expect_equal(result_with_warnings$ci_lower, result_without_warnings$ci_lower)
-  expect_equal(result_with_warnings$ci_upper, result_without_warnings$ci_upper)
+  expect_equal(result_with_warnings$asr_ci_lower, result_without_warnings$asr_ci_lower)
+  expect_equal(result_with_warnings$asr_ci_upper, result_without_warnings$asr_ci_upper)
 })
 
 # Tests comparing with PHEindicatormethods::calculate_dsr() ----
@@ -336,8 +336,8 @@ test_that("calculate_asr_direct() results match PHEindicatormethods::calculate_d
 
   # Compare confidence intervals (allow for methodological differences)
   # Our function uses gamma distribution method, PHE uses Byar's/Dobson method
-  expect_equal(result_epi$ci_lower_scaled, result_phe$lowercl, tolerance = 0.5)
-  expect_equal(result_epi$ci_upper_scaled, result_phe$uppercl, tolerance = 0.5)
+  expect_equal(result_epi$asr_ci_lower_scaled, result_phe$lowercl, tolerance = 0.5)
+  expect_equal(result_epi$asr_ci_upper_scaled, result_phe$uppercl, tolerance = 0.5)
 
   # Test with different multiplier
   result_epi_1k <- calculate_asr_direct(df_epi, multiplier = 1000, warn_small_cases = FALSE)
@@ -352,8 +352,8 @@ test_that("calculate_asr_direct() results match PHEindicatormethods::calculate_d
   )
 
   expect_equal(result_epi_1k$asr_scaled, result_phe_1k$value, tolerance = 1e-6)
-  expect_equal(result_epi_1k$ci_lower_scaled, result_phe_1k$lowercl, tolerance = 0.01)
-  expect_equal(result_epi_1k$ci_upper_scaled, result_phe_1k$uppercl, tolerance = 0.01)
+  expect_equal(result_epi_1k$asr_ci_lower_scaled, result_phe_1k$lowercl, tolerance = 0.01)
+  expect_equal(result_epi_1k$asr_ci_upper_scaled, result_phe_1k$uppercl, tolerance = 0.01)
 })
 
 test_that("calculate_asr_direct() handles edge cases similarly to PHEindicatormethods", {
@@ -422,8 +422,8 @@ test_that("calculate_asr_direct() handles edge cases similarly to PHEindicatorme
 
   # Results should still match despite small case counts (allowing for method differences)
   expect_equal(result_epi$asr_scaled, result_phe$value, tolerance = 1e-6)
-  expect_equal(result_epi$ci_lower_scaled, result_phe$lowercl, tolerance = 0.5)
-  expect_equal(result_epi$ci_upper_scaled, result_phe$uppercl, tolerance = 0.5)
+  expect_equal(result_epi$asr_ci_lower_scaled, result_phe$lowercl, tolerance = 0.5)
+  expect_equal(result_epi$asr_ci_upper_scaled, result_phe$uppercl, tolerance = 0.5)
 
   # Test Birth Order 4 (even smaller case counts)
   df_epi_4 <- prep_data_for_epiutils(count_matrix[, 4], population_matrix[, 4], standard_pop_epitools)
@@ -441,8 +441,8 @@ test_that("calculate_asr_direct() handles edge cases similarly to PHEindicatorme
   )
 
   expect_equal(result_epi_4$asr_scaled, result_phe_4$value, tolerance = 1e-6)
-  expect_equal(result_epi_4$ci_lower_scaled, result_phe_4$lowercl, tolerance = 1.0)
-  expect_equal(result_epi_4$ci_upper_scaled, result_phe_4$uppercl, tolerance = 8.5)
+  expect_equal(result_epi_4$asr_ci_lower_scaled, result_phe_4$lowercl, tolerance = 1.0)
+  expect_equal(result_epi_4$asr_ci_upper_scaled, result_phe_4$uppercl, tolerance = 8.5)
 })
 
 test_that("calculate_asr_direct() confidence intervals match PHE method", {
@@ -484,8 +484,8 @@ test_that("calculate_asr_direct() confidence intervals match PHE method", {
 
   # Confidence intervals may differ slightly due to different methods
   # but should be close for reasonable sample sizes
-  expect_equal(result_epi$ci_lower_scaled, result_phe$lowercl, tolerance = 0.1)
-  expect_equal(result_epi$ci_upper_scaled, result_phe$uppercl, tolerance = 0.1)
+  expect_equal(result_epi$asr_ci_lower_scaled, result_phe$lowercl, tolerance = 0.1)
+  expect_equal(result_epi$asr_ci_upper_scaled, result_phe$uppercl, tolerance = 0.1)
 
   # Test different confidence level
   result_epi_99 <- calculate_asr_direct(test_data_epi, multiplier = 100000,
@@ -501,8 +501,8 @@ test_that("calculate_asr_direct() confidence intervals match PHE method", {
   )
 
   expect_equal(result_epi_99$asr_scaled, result_phe_99$value, tolerance = 1e-6)
-  expect_equal(result_epi_99$ci_lower_scaled, result_phe_99$lowercl, tolerance = 0.1)
-  expect_equal(result_epi_99$ci_upper_scaled, result_phe_99$uppercl, tolerance = 0.1)
+  expect_equal(result_epi_99$asr_ci_lower_scaled, result_phe_99$lowercl, tolerance = 0.1)
+  expect_equal(result_epi_99$asr_ci_upper_scaled, result_phe_99$uppercl, tolerance = 0.1)
 })
 
 # Test warnings -----------------------------------------------------------
@@ -525,8 +525,8 @@ test_that("calculate_asr_direct handles small and zero case counts appropriately
 
   # Should still produce valid results
   expect_true(is.numeric(result1$asr))
-  expect_true(is.numeric(result1$ci_lower))
-  expect_true(is.numeric(result1$ci_upper))
+  expect_true(is.numeric(result1$asr_ci_lower))
+  expect_true(is.numeric(result1$asr_ci_upper))
   expect_true(result1$asr > 0)
 
   # Test with warnings disabled
@@ -536,8 +536,8 @@ test_that("calculate_asr_direct handles small and zero case counts appropriately
 
   # Results should be identical regardless of warning setting
   expect_equal(result1$asr, result2$asr)
-  expect_equal(result1$ci_lower, result2$ci_lower)
-  expect_equal(result1$ci_upper, result2$ci_upper)
+  expect_equal(result1$asr_ci_lower, result2$asr_ci_lower)
+  expect_equal(result1$asr_ci_upper, result2$asr_ci_upper)
 
   # Test that zero person-years now works with warning (and excludes those groups)
   # Use data without small case counts to isolate the zero person-years warning

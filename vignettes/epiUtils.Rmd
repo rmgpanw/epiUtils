@@ -124,7 +124,7 @@ asr_result_who <- calculate_asr_direct(asr_data_who)
 print("Age-Standardised Rate Results (WHO age groups):")
 print(paste("Crude rate:", round(asr_result_who$crude_rate_scaled, 2), "per 100,000"))
 print(paste("Age-standardised rate:", round(asr_result_who$asr_scaled, 2), "per 100,000"))
-print(paste("95% CI:", round(asr_result_who$ci_lower_scaled, 2), "-", round(asr_result_who$ci_upper_scaled, 2)))
+print(paste("95% CI:", round(asr_result_who$asr_ci_lower_scaled, 2), "-", round(asr_result_who$asr_ci_upper_scaled, 2)))
 print(paste("Total events:", asr_result_who$total_events))
 print(paste("Total person-years:", asr_result_who$total_person_years))
 
@@ -170,7 +170,7 @@ asr_result_10yr <- calculate_asr_direct(asr_data_10yr)
 print("Age-Standardised Rate Results (10-year age groups):")
 print(paste("Crude rate:", round(asr_result_10yr$crude_rate_scaled, 2), "per 100,000"))
 print(paste("Age-standardised rate:", round(asr_result_10yr$asr_scaled, 2), "per 100,000"))
-print(paste("95% CI:", round(asr_result_10yr$ci_lower_scaled, 2), "-", round(asr_result_10yr$ci_upper_scaled, 2)))
+print(paste("95% CI:", round(asr_result_10yr$asr_ci_lower_scaled, 2), "-", round(asr_result_10yr$asr_ci_upper_scaled, 2)))
 
 # Compare the two approaches
 print("Comparison of age standardisation approaches:")
@@ -244,22 +244,22 @@ The function supports two methods for calculating confidence intervals, controll
 print("Gamma method (default):")
 result_gamma <- calculate_asr_direct(small_cases_data, warn_small_cases = FALSE)
 print(paste("ASR:", round(result_gamma$asr_scaled, 2), 
-            "95% CI:", round(result_gamma$ci_lower_scaled, 2), "-", 
-            round(result_gamma$ci_upper_scaled, 2)))
+            "95% CI:", round(result_gamma$asr_ci_lower_scaled, 2), "-", 
+            round(result_gamma$asr_ci_upper_scaled, 2)))
 
 print("Byar's/Dobson method:")
 result_byars <- calculate_asr_direct(small_cases_data, ci_method = "byars", warn_small_cases = FALSE)
 print(paste("ASR:", round(result_byars$asr_scaled, 2), 
-            "95% CI:", round(result_byars$ci_lower_scaled, 2), "-", 
-            round(result_byars$ci_upper_scaled, 2)))
+            "95% CI:", round(result_byars$asr_ci_lower_scaled, 2), "-", 
+            round(result_byars$asr_ci_upper_scaled, 2)))
 
 # The point estimates are identical, but confidence intervals may differ
 print("Point estimates are identical:", 
       round(result_gamma$asr_scaled, 10) == round(result_byars$asr_scaled, 10))
 
 # Calculate the difference in CI width
-gamma_width <- result_gamma$ci_upper_scaled - result_gamma$ci_lower_scaled
-byars_width <- result_byars$ci_upper_scaled - result_byars$ci_lower_scaled
+gamma_width <- result_gamma$asr_ci_upper_scaled - result_gamma$asr_ci_lower_scaled
+byars_width <- result_byars$asr_ci_upper_scaled - result_byars$asr_ci_lower_scaled
 print(paste("CI width difference:", round(abs(gamma_width - byars_width), 2)))
 ```
 
@@ -317,7 +317,7 @@ cancer_asr <- calculate_asr_direct(cancer_data)
 print("Cancer Incidence Results:")
 print(paste("Crude incidence rate:", round(cancer_asr$crude_rate_scaled, 1), "per 100,000"))
 print(paste("Age-standardised incidence rate:", round(cancer_asr$asr_scaled, 1), "per 100,000"))
-print(paste("95% CI:", round(cancer_asr$ci_lower_scaled, 1), "-", round(cancer_asr$ci_upper_scaled, 1), "per 100,000"))
+print(paste("95% CI:", round(cancer_asr$asr_ci_lower_scaled, 1), "-", round(cancer_asr$asr_ci_upper_scaled, 1), "per 100,000"))
 ```
 
 # Visualization
@@ -358,8 +358,8 @@ print(p2)
 comparison_data <- data.frame(
   Rate_Type = c("Crude Rate", "Age-Standardised Rate"),
   Rate = c(cancer_asr$crude_rate_scaled, cancer_asr$asr_scaled),
-  CI_Lower = c(NA, cancer_asr$ci_lower_scaled),
-  CI_Upper = c(NA, cancer_asr$ci_upper_scaled)
+  CI_Lower = c(NA, cancer_asr$asr_ci_lower_scaled),
+  CI_Upper = c(NA, cancer_asr$asr_ci_upper_scaled)
 )
 
 p3 <- ggplot(comparison_data, aes(x = Rate_Type, y = Rate)) +
@@ -418,8 +418,8 @@ diabetes_prevalence <- calculate_asr_direct(
 print("Diabetes Prevalence Results:")
 print(paste("Crude prevalence:", round(diabetes_prevalence$crude_rate_scaled, 2), "%"))
 print(paste("Age-standardised prevalence:", round(diabetes_prevalence$asr_scaled, 2), "%"))
-print(paste("95% CI:", round(diabetes_prevalence$ci_lower_scaled, 2), "% -", 
-            round(diabetes_prevalence$ci_upper_scaled, 2), "%"))
+print(paste("95% CI:", round(diabetes_prevalence$asr_ci_lower_scaled, 2), "% -", 
+            round(diabetes_prevalence$asr_ci_upper_scaled, 2), "%"))
 
 # View age-specific prevalence rates
 age_specific_prev <- diabetes_prevalence$age_specific_data[[1]]

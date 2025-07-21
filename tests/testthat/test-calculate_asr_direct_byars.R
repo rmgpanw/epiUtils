@@ -16,14 +16,14 @@ test_that("calculate_asr_direct Byar's CI method works correctly", {
   expect_equal(result_byars$asr_scaled, result_gamma$asr_scaled)
   
   # Confidence intervals should be positive and reasonable
-  expect_true(result_byars$ci_lower > 0)
-  expect_true(result_byars$ci_upper > result_byars$ci_lower)
-  expect_true(result_byars$ci_lower_scaled > 0)
-  expect_true(result_byars$ci_upper_scaled > result_byars$ci_lower_scaled)
+  expect_true(result_byars$asr_ci_lower > 0)
+  expect_true(result_byars$asr_ci_upper > result_byars$asr_ci_lower)
+  expect_true(result_byars$asr_ci_lower_scaled > 0)
+  expect_true(result_byars$asr_ci_upper_scaled > result_byars$asr_ci_lower_scaled)
   
   # ASR should be within the confidence interval
-  expect_true(result_byars$asr >= result_byars$ci_lower)
-  expect_true(result_byars$asr <= result_byars$ci_upper)
+  expect_true(result_byars$asr >= result_byars$asr_ci_lower)
+  expect_true(result_byars$asr <= result_byars$asr_ci_upper)
 })
 
 test_that("calculate_asr_direct Byar's CI method handles small case counts", {
@@ -43,14 +43,14 @@ test_that("calculate_asr_direct Byar's CI method handles small case counts", {
   expect_equal(result_byars$asr, result_gamma$asr)
   
   # Confidence intervals should be positive and reasonable
-  expect_true(result_byars$ci_lower >= 0)  # Can be 0 for very small counts
-  expect_true(result_byars$ci_upper > result_byars$ci_lower)
+  expect_true(result_byars$asr_ci_lower >= 0)  # Can be 0 for very small counts
+  expect_true(result_byars$asr_ci_upper > result_byars$asr_ci_lower)
   
   # Results should be valid numbers
-  expect_false(is.na(result_byars$ci_lower))
-  expect_false(is.na(result_byars$ci_upper))
-  expect_false(is.infinite(result_byars$ci_lower))
-  expect_false(is.infinite(result_byars$ci_upper))
+  expect_false(is.na(result_byars$asr_ci_lower))
+  expect_false(is.na(result_byars$asr_ci_upper))
+  expect_false(is.infinite(result_byars$asr_ci_lower))
+  expect_false(is.infinite(result_byars$asr_ci_upper))
 })
 
 test_that("calculate_asr_direct Byar's CI method handles zero total cases", {
@@ -70,12 +70,12 @@ test_that("calculate_asr_direct Byar's CI method handles zero total cases", {
   expect_equal(result_byars$asr_scaled, 0)
   
   # Lower CI should be zero
-  expect_equal(result_byars$ci_lower, 0)
-  expect_equal(result_byars$ci_lower_scaled, 0)
+  expect_equal(result_byars$asr_ci_lower, 0)
+  expect_equal(result_byars$asr_ci_lower_scaled, 0)
   
   # Upper CI should be positive or zero (can be zero for zero total cases)
-  expect_true(result_byars$ci_upper >= 0)
-  expect_true(result_byars$ci_upper_scaled >= 0)
+  expect_true(result_byars$asr_ci_upper >= 0)
+  expect_true(result_byars$asr_ci_upper_scaled >= 0)
 })
 
 test_that("calculate_asr_direct Byar's CI method handles edge case at boundary", {
@@ -92,12 +92,12 @@ test_that("calculate_asr_direct Byar's CI method handles edge case at boundary",
   
   # Should produce valid results
   expect_true(is.finite(result_byars$asr))
-  expect_true(is.finite(result_byars$ci_lower))
-  expect_true(is.finite(result_byars$ci_upper))
+  expect_true(is.finite(result_byars$asr_ci_lower))
+  expect_true(is.finite(result_byars$asr_ci_upper))
   
   # Confidence intervals should be reasonable
-  expect_true(result_byars$ci_lower >= 0)
-  expect_true(result_byars$ci_upper > result_byars$ci_lower)
+  expect_true(result_byars$asr_ci_lower >= 0)
+  expect_true(result_byars$asr_ci_upper > result_byars$asr_ci_lower)
 })
 
 test_that("calculate_asr_direct Byar's CI respects different confidence levels", {
@@ -119,17 +119,17 @@ test_that("calculate_asr_direct Byar's CI respects different confidence levels",
   expect_equal(result_95$asr, result_99$asr)
   
   # Higher confidence levels should have wider intervals
-  width_90 <- result_90$ci_upper - result_90$ci_lower
-  width_95 <- result_95$ci_upper - result_95$ci_lower
-  width_99 <- result_99$ci_upper - result_99$ci_lower
+  width_90 <- result_90$asr_ci_upper - result_90$asr_ci_lower
+  width_95 <- result_95$asr_ci_upper - result_95$asr_ci_lower
+  width_99 <- result_99$asr_ci_upper - result_99$asr_ci_lower
   
   expect_true(width_90 < width_95)
   expect_true(width_95 < width_99)
   
   # All should contain the point estimate
-  expect_true(result_90$asr >= result_90$ci_lower && result_90$asr <= result_90$ci_upper)
-  expect_true(result_95$asr >= result_95$ci_lower && result_95$asr <= result_95$ci_upper)
-  expect_true(result_99$asr >= result_99$ci_lower && result_99$asr <= result_99$ci_upper)
+  expect_true(result_90$asr >= result_90$asr_ci_lower && result_90$asr <= result_90$asr_ci_upper)
+  expect_true(result_95$asr >= result_95$asr_ci_lower && result_95$asr <= result_95$asr_ci_upper)
+  expect_true(result_99$asr >= result_99$asr_ci_lower && result_99$asr <= result_99$asr_ci_upper)
 })
 
 test_that("calculate_asr_direct Byar's CI method ensures non-negative lower bounds", {
@@ -145,11 +145,11 @@ test_that("calculate_asr_direct Byar's CI method ensures non-negative lower boun
   result_byars <- calculate_asr_direct(very_small_data, ci_method = "byars", warn_small_cases = FALSE)
   
   # Lower bound should never be negative
-  expect_true(result_byars$ci_lower >= 0)
-  expect_true(result_byars$ci_lower_scaled >= 0)
+  expect_true(result_byars$asr_ci_lower >= 0)
+  expect_true(result_byars$asr_ci_lower_scaled >= 0)
   
   # Should still be valid
-  expect_true(result_byars$ci_upper > result_byars$ci_lower)
+  expect_true(result_byars$asr_ci_upper > result_byars$asr_ci_lower)
 })
 
 test_that("calculate_asr_direct CI methods produce similar results for large samples", {
@@ -169,8 +169,8 @@ test_that("calculate_asr_direct CI methods produce similar results for large sam
   expect_equal(result_gamma$asr, result_byars$asr)
   
   # Confidence intervals should be similar (within 5% relative difference)
-  relative_diff_lower <- abs(result_gamma$ci_lower - result_byars$ci_lower) / result_gamma$ci_lower
-  relative_diff_upper <- abs(result_gamma$ci_upper - result_byars$ci_upper) / result_gamma$ci_upper
+  relative_diff_lower <- abs(result_gamma$asr_ci_lower - result_byars$asr_ci_lower) / result_gamma$asr_ci_lower
+  relative_diff_upper <- abs(result_gamma$asr_ci_upper - result_byars$asr_ci_upper) / result_gamma$asr_ci_upper
   
   expect_true(relative_diff_lower < 0.05)
   expect_true(relative_diff_upper < 0.05)

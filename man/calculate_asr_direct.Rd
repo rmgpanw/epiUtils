@@ -49,12 +49,16 @@ A tibble containing:
 \itemize{
 \item \strong{crude_rate}: Crude incidence rate
 \item \strong{crude_rate_scaled}: Crude rate multiplied by multiplier
+\item \strong{crude_ci_lower}: Lower confidence interval bound for crude rate
+\item \strong{crude_ci_upper}: Upper confidence interval bound for crude rate
+\item \strong{crude_ci_lower_scaled}: Lower crude CI multiplied by multiplier
+\item \strong{crude_ci_upper_scaled}: Upper crude CI multiplied by multiplier
 \item \strong{asr}: Age-standardised incidence rate
 \item \strong{asr_scaled}: ASR multiplied by multiplier
-\item \strong{ci_lower}: Lower confidence interval bound for ASR
-\item \strong{ci_upper}: Upper confidence interval bound for ASR
-\item \strong{ci_lower_scaled}: Lower CI multiplied by multiplier
-\item \strong{ci_upper_scaled}: Upper CI multiplied by multiplier
+\item \strong{asr_ci_lower}: Lower confidence interval bound for ASR
+\item \strong{asr_ci_upper}: Upper confidence interval bound for ASR
+\item \strong{asr_ci_lower_scaled}: Lower ASR CI multiplied by multiplier
+\item \strong{asr_ci_upper_scaled}: Upper ASR CI multiplied by multiplier
 \item \strong{conf_level}: Confidence level used
 \item \strong{total_events}: Total number of events across all age groups
 \item \strong{total_person_years}: Total person-years across all age groups
@@ -70,10 +74,17 @@ prevents negative bounds and is the standard approach in epidemiological
 literature.
 }
 \details{
-The function uses the gamma distribution method for confidence
-interval calculation, which is the standard approach in epidemiological
-software like epitools. This method naturally prevents negative confidence
-interval bounds and is appropriate for rate data.
+The function calculates both crude and age-standardised rates with
+confidence intervals using established methods:
+
+\strong{Crude Rate Confidence Intervals:} Uses Wilson score intervals via
+\code{prop.test()}, which is appropriate for proportions/rates and provides
+better coverage than normal approximation, especially for small counts.
+
+\strong{Age-Standardised Rate Confidence Intervals:} Uses either gamma
+distribution (default) or Byar's method, both standard approaches in
+epidemiological software. The gamma method naturally prevents negative
+confidence interval bounds and is appropriate for rate data.
 
 The direct standardisation method calculates ASR as: ASR = Σ(w_i × r_i)
 where w_i are standardised weights and r_i are age-specific rates
