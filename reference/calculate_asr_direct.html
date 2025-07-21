@@ -109,7 +109,8 @@ wider age groups for more stable results.</p></dd>
 <li><p><strong>ci_lower_scaled</strong>: Lower CI multiplied by multiplier</p></li>
 <li><p><strong>ci_upper_scaled</strong>: Upper CI multiplied by multiplier</p></li>
 <li><p><strong>conf_level</strong>: Confidence level used</p></li>
-<li><p><strong>method</strong>: Method used for CI calculation</p></li>
+<li><p><strong>total_events</strong>: Total number of events across all age groups</p></li>
+<li><p><strong>total_person_years</strong>: Total person-years across all age groups</p></li>
 <li><p><strong>age_specific_data</strong>: Data frame with age-specific rates and details</p></li>
 </ul></div>
     <div class="section level2">
@@ -153,6 +154,10 @@ scientific publications, (82), 1-406.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 553.1795</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">ci_upper_scaled</span><span class="op">)</span>  <span class="co"># Upper CI per 100,000</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 657.7353</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">total_events</span><span class="op">)</span>  <span class="co"># Total events across all age groups</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 560</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">total_person_years</span><span class="op">)</span>  <span class="co"># Total person-years</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 85000</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
