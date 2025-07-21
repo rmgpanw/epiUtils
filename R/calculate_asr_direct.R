@@ -36,7 +36,8 @@
 #' - **ci_lower_scaled**: Lower CI multiplied by multiplier
 #' - **ci_upper_scaled**: Upper CI multiplied by multiplier
 #' - **conf_level**: Confidence level used
-#' - **method**: Method used for CI calculation
+#' - **total_events**: Total number of events across all age groups
+#' - **total_person_years**: Total person-years across all age groups
 #' - **age_specific_data**: Data frame with age-specific rates and details
 #'
 #' @details The function uses the gamma distribution method for confidence
@@ -70,6 +71,8 @@
 #' print(result$asr_scaled)  # ASR per 100,000
 #' print(result$ci_lower_scaled)  # Lower CI per 100,000
 #' print(result$ci_upper_scaled)  # Upper CI per 100,000
+#' print(result$total_events)  # Total events across all age groups
+#' print(result$total_person_years)  # Total person-years
 #'
 #' @references Breslow, N. E., & Day, N. E. (1987). Statistical methods in
 #'   cancer research. Volume II--The design and analysis of cohort studies. IARC
@@ -305,6 +308,10 @@ calculate_asr_direct <- function(.df,
     ) |>
     dplyr::select(dplyr::everything(), -dplyr::all_of("expected_cases"))
 
+  # Calculate total events and person-years
+  total_events <- sum(asr_data[["events"]], na.rm = TRUE)
+  total_person_years <- sum(asr_data[["person_years"]], na.rm = TRUE)
+
   # Return comprehensive results
   tibble::tibble(
     crude_rate = crude_rate,
@@ -316,6 +323,8 @@ calculate_asr_direct <- function(.df,
     ci_lower_scaled = ci_lower * multiplier,
     ci_upper_scaled = ci_upper * multiplier,
     conf_level = conf_level,
+    total_events = total_events,
+    total_person_years = total_person_years,
     age_specific_data = list(age_specific_results)
   )
 }

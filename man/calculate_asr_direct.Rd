@@ -51,7 +51,8 @@ A tibble containing:
 \item \strong{ci_lower_scaled}: Lower CI multiplied by multiplier
 \item \strong{ci_upper_scaled}: Upper CI multiplied by multiplier
 \item \strong{conf_level}: Confidence level used
-\item \strong{method}: Method used for CI calculation
+\item \strong{total_events}: Total number of events across all age groups
+\item \strong{total_person_years}: Total person-years across all age groups
 \item \strong{age_specific_data}: Data frame with age-specific rates and details
 }
 }
@@ -96,6 +97,8 @@ result <- calculate_asr_direct(.df = pop_data)
 print(result$asr_scaled)  # ASR per 100,000
 print(result$ci_lower_scaled)  # Lower CI per 100,000
 print(result$ci_upper_scaled)  # Upper CI per 100,000
+print(result$total_events)  # Total events across all age groups
+print(result$total_person_years)  # Total person-years
 
 }
 \references{

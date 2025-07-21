@@ -144,6 +144,8 @@ print("Age-Standardised Rate Results:")
 print(paste("Crude rate:", round(asr_result$crude_rate_scaled, 2), "per 100,000"))
 print(paste("Age-standardised rate:", round(asr_result$asr_scaled, 2), "per 100,000"))
 print(paste("95% CI:", round(asr_result$ci_lower_scaled, 2), "-", round(asr_result$ci_upper_scaled, 2)))
+print(paste("Total events:", asr_result$total_events))
+print(paste("Total person-years:", asr_result$total_person_years))
 
 # View age-specific details
 print("Age-specific details:")

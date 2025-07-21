@@ -124,6 +124,60 @@ test_that("calculate_asr_direct matches epitools::ageadjust.direct results", {
 
 })
 
+test_that("Total events and person-years columns are correctly calculated", {
+  # Create simple test data
+  test_data <- data.frame(
+    age_group = c("0-19", "20-39", "40-59"),
+    events = c(10L, 25L, 15L),
+    person_years = c(1000, 2000, 1500),
+    standard_pop = c(5000, 4000, 3000)
+  )
+  
+  result <- calculate_asr_direct(.df = test_data, warn_small_cases = FALSE)
+  
+  # Test total_events
+  expect_equal(result$total_events, 50L)  # 10 + 25 + 15
+  
+  # Test total_person_years  
+  expect_equal(result$total_person_years, 4500)  # 1000 + 2000 + 1500
+  
+  # Verify these columns exist
+  expect_true("total_events" %in% names(result))
+  expect_true("total_person_years" %in% names(result))
+  
+  # Test that crude rate matches total_events/total_person_years
+  expected_crude_rate <- 50 / 4500
+  expect_equal(result$crude_rate, expected_crude_rate, tolerance = 1e-10)
+
+})
+
+test_that("Total columns handle edge cases correctly", {
+  # Test with single age group
+  single_age <- data.frame(
+    age_group = "All ages",
+    events = 100L,
+    person_years = 10000,
+    standard_pop = 50000
+  )
+  
+  result_single <- calculate_asr_direct(.df = single_age, warn_small_cases = FALSE)
+  expect_equal(result_single$total_events, 100L)
+  expect_equal(result_single$total_person_years, 10000)
+  
+  # Test with zero events in some age groups
+  zero_events <- data.frame(
+    age_group = c("0-19", "20-39", "40+"),
+    events = c(0L, 20L, 0L),
+    person_years = c(1000, 2000, 500),
+    standard_pop = c(5000, 4000, 2000)
+  )
+  
+  result_zero <- calculate_asr_direct(.df = zero_events, warn_small_cases = FALSE)
+  expect_equal(result_zero$total_events, 20L)
+  expect_equal(result_zero$total_person_years, 3500)
+
+})
+
 test_that("calculate_asr_direct warnings are triggered correctly", {
 
   # Set up test data (same as main validation test)
