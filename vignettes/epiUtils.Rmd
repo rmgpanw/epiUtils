@@ -195,6 +195,7 @@ The function supports two methods for calculating confidence intervals, controll
 ### Technical Differences
 
 **Gamma Method:**
+
 - Based on the gamma distribution, which naturally models positive rate data
 - Automatically ensures confidence intervals are always positive (cannot be negative)
 - Particularly robust with small case counts and low rates
@@ -202,11 +203,11 @@ The function supports two methods for calculating confidence intervals, controll
 - Uses shape and scale parameters derived from the observed data
 
 **Byar's/Dobson Method:**
+
 - Traditional epidemiological approach dating to the 1970s-80s
 - Uses normal approximation with continuity corrections for larger counts
 - Uses exact Poisson-based intervals for very small counts (<10 total cases)
 - Consistent with `PHEindicatormethods::calculate_dsr()`
-- May occasionally produce slightly wider intervals with very small counts
 
 ```{r ci-methods-demo}
 # Compare confidence interval methods using the same data
@@ -235,16 +236,20 @@ print(paste("CI width difference:", round(abs(gamma_width - byars_width), 2)))
 ### Practical Implications
 
 **When results differ:**
+
 - Differences are typically small for moderate to large case counts (>20 total cases)
 - More noticeable differences may occur with very small case counts or low rates
 - The gamma method tends to be slightly more conservative (wider intervals) with extremely small counts
 - Both methods are statistically valid and widely accepted
 
 **Method selection guidance:**
+
 - Use **gamma** (default) for most analyses, especially with small case counts or low rates
 - Use **byars** when:
+  
   - Comparing with historical studies that used Byar's method
   - Institutional requirements specify this traditional approach
+  
 - Both methods converge to similar results as sample sizes increase
 
 # Example 3: Using WHO Standard Population Directly
@@ -343,6 +348,75 @@ p3 <- ggplot(comparison_data, aes(x = Rate_Type, y = Rate)) +
 
 print(p3)
 ```
+
+# Example 4: Age-Standardised Prevalence Rates
+
+The `calculate_asr_direct()` function can also be used to calculate age-standardised prevalence rates. For prevalence studies, the key differences are:
+
+- **events**: Number of individuals with the condition at a point in time
+- **person_years**: Total number of individuals examined/surveyed (use population counts, not person-years of follow-up)
+- **multiplier**: Use 100 to express results as percentages (%) instead of rates per 100,000
+
+```{r prevalence-example}
+# Example: Age-standardised prevalence of diabetes in a population survey
+set.seed(789)
+
+# Create synthetic diabetes prevalence data
+diabetes_data <- data.frame(
+  age_group = c("18-29", "30-39", "40-49", "50-59", "60-69", "70+"),
+  
+  # Number of individuals with diabetes (events)
+  events = c(12L, 45L, 98L, 156L, 203L, 167L),
+  
+  # Total number of individuals surveyed in each age group (person_years = N individuals)
+  person_years = c(1200, 1500, 1800, 1400, 1100, 800),
+  
+  # WHO standard population weights for corresponding age groups
+  standard_pop = c(2435, 2021, 1826, 1485, 1118, 763)  # Simplified WHO weights
+)
+
+print("Diabetes prevalence survey data:")
+print(diabetes_data)
+
+# Calculate age-standardised prevalence using multiplier = 100 for percentages
+diabetes_prevalence <- calculate_asr_direct(
+  .df = diabetes_data,
+  multiplier = 100,  # Use 100 to get percentages instead of per 100,000
+  warn_small_cases = FALSE
+)
+
+print("Diabetes Prevalence Results:")
+print(paste("Crude prevalence:", round(diabetes_prevalence$crude_rate_scaled, 2), "%"))
+print(paste("Age-standardised prevalence:", round(diabetes_prevalence$asr_scaled, 2), "%"))
+print(paste("95% CI:", round(diabetes_prevalence$ci_lower_scaled, 2), "% -", 
+            round(diabetes_prevalence$ci_upper_scaled, 2), "%"))
+
+# View age-specific prevalence rates
+age_specific_prev <- diabetes_prevalence$age_specific_data[[1]]
+print("Age-specific prevalence rates:")
+print(age_specific_prev[, c("age_group", "events", "person_years", "age_specific_rate_scaled")])
+
+# Plot age-specific prevalence
+library(ggplot2)
+p_prev <- ggplot(age_specific_prev, aes(x = age_group, y = age_specific_rate_scaled)) +
+  geom_col(fill = "darkred", alpha = 0.7) +
+  theme_minimal() +
+  labs(
+    title = "Age-Specific Diabetes Prevalence",
+    x = "Age Group",
+    y = "Prevalence (%)"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(p_prev)
+```
+
+**Key Points for Prevalence Studies:**
+
+- **Cross-sectional data**: Use counts of individuals with/without condition at a specific time point
+- **Population denominator**: Use total number of individuals examined, not person-years of follow-up
+- **Percentage scale**: Set `multiplier = 100` to express results as percentages (%)
+- **Interpretation**: Results represent the proportion of the population with the condition, standardised for age differences
 
 # Key Features Summary
 

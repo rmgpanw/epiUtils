@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_asr_direct.R
 \name{calculate_asr_direct}
 \alias{calculate_asr_direct}
-\title{Calculate Age-Standardised Incidence Rates with Confidence Intervals}
+\title{Calculate Age-Standardised Rates with Confidence Intervals}
 \usage{
 calculate_asr_direct(
   .df,
@@ -17,15 +17,18 @@ calculate_asr_direct(
 and standard population weights. Must contain the following columns:
 \itemize{
 \item \strong{age_group}: Age group labels
-\item \strong{events}: Number of events/cases in each age group (integer)
-\item \strong{person_years}: Person-years of follow-up or population size in each age group (numeric)
+\item \strong{events}: Number of events/cases in each age group (integer). For incidence:
+new cases over time. For prevalence: individuals with condition at a point in time.
+\item \strong{person_years}: Person-years of follow-up (incidence) or population size
+(prevalence) in each age group (numeric). For prevalence studies, use the
+total number of individuals examined/surveyed.
 \item \strong{standard_pop}: Standard population weights for each age group (numeric)
 }}
 
 \item{conf_level}{Confidence level for confidence intervals (default: 0.95)}
 
 \item{multiplier}{Multiplier for rate expression (default: 100000 for rates
-per 100,000)}
+per 100,000). Use 100 for prevalence studies to express results as percentages.}
 
 \item{ci_method}{Character string specifying the confidence interval
 calculation method. Options are "gamma" (default) or "byars". The gamma
@@ -57,10 +60,11 @@ A tibble containing:
 }
 }
 \description{
-This function calculates age-standardised incidence rates (ASR) using the
-direct standardisation method with gamma distribution-based confidence
-intervals. The gamma method is preferred as it naturally prevents negative
-confidence interval bounds and is the standard approach in epidemiological
+This function calculates age-standardised rates using the direct
+standardisation method with confidence intervals. It can be used for both
+incidence rates (events over time) and prevalence rates (cross-sectional
+data). The gamma method is preferred for confidence intervals as it naturally
+prevents negative bounds and is the standard approach in epidemiological
 literature.
 }
 \details{
@@ -72,6 +76,12 @@ interval bounds and is appropriate for rate data.
 The direct standardisation method calculates ASR as: ASR = Σ(w_i × r_i)
 where w_i are standardised weights and r_i are age-specific rates
 
+\strong{Incidence vs Prevalence:}
+\itemize{
+\item \strong{Incidence rates}: Use person-years of follow-up in denominator, typically expressed per 100,000
+\item \strong{Prevalence rates}: Use total individuals examined in denominator, typically expressed as percentages (set multiplier = 100)
+}
+
 \strong{Age Grouping Considerations:}
 \itemize{
 \item Zero cases are allowed but may indicate very low incidence or small populations
@@ -82,23 +92,29 @@ where w_i are standardised weights and r_i are age-specific rates
 }
 }
 \examples{
-# Example data with required columns
-pop_data <- data.frame(
+# Example 1: Incidence rates (per 100,000)
+incidence_data <- data.frame(
   age_group = c("0-19", "20-39", "40-59", "60-79", "80+"),
   events = c(5L, 25L, 150L, 300L, 80L),
   person_years = c(20000, 25000, 22000, 15000, 3000),
   standard_pop = c(35000, 25000, 20000, 15000, 5000)
 )
 
-# Calculate ASR
-result <- calculate_asr_direct(.df = pop_data)
+# Calculate age-standardised incidence rate
+incidence_result <- calculate_asr_direct(.df = incidence_data)
+print(incidence_result$asr_scaled)  # ASR per 100,000
 
-# View results
-print(result$asr_scaled)  # ASR per 100,000
-print(result$ci_lower_scaled)  # Lower CI per 100,000
-print(result$ci_upper_scaled)  # Upper CI per 100,000
-print(result$total_events)  # Total events across all age groups
-print(result$total_person_years)  # Total person-years
+# Example 2: Prevalence rates (as percentages)
+prevalence_data <- data.frame(
+  age_group = c("18-29", "30-49", "50-69", "70+"),
+  events = c(12L, 45L, 98L, 67L),  # Individuals with condition
+  person_years = c(1200, 1500, 1400, 800),  # Individuals surveyed
+  standard_pop = c(2435, 3847, 2603, 763)
+)
+
+# Calculate age-standardised prevalence (use multiplier = 100 for percentages)
+prevalence_result <- calculate_asr_direct(.df = prevalence_data, multiplier = 100)
+print(paste("Prevalence:", round(prevalence_result$asr_scaled, 2), "\%"))
 
 }
 \references{
