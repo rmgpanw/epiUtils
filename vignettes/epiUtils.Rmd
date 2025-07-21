@@ -49,7 +49,7 @@ str(who_2000_2025_standard_population)
 
 # Example 1: Calculate Person-Years by Age Strata
 
-Let's start with an example of calculating person-years for a cohort study. We'll create some example data and then use the built-in function.
+Let's start with an example of calculating person-years for a cohort study. The default age groups now match the WHO 2000-2025 Standard Population, making it easy to calculate age-standardised rates.
 
 ```{r person-years-example}
 # Create example cohort data
@@ -73,35 +73,65 @@ cohort_data$study_exit_date <- pmax(
 # View first few rows
 head(cohort_data)
 
-# Calculate person-years by 5-year age groups (default)
-person_years_5yr <- calculate_person_years_by_age_strata(cohort_data)
-print(person_years_5yr)
+# Calculate person-years by 5-year age groups (default - matches WHO age groups)
+person_years_who <- calculate_person_years_by_age_strata(cohort_data)
+print("Person-years by WHO-compatible age groups:")
+print(person_years_who)
 
-# Calculate person-years using custom age groups (10-year groups)
+# Calculate person-years using custom age groups (10-year groups for comparison)
 person_years_10yr <- calculate_person_years_by_age_strata(
   cohort_data, 
-  age_cut_points = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+  age_cut_points = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150)
 )
+print("Person-years by 10-year age groups:")
 print(person_years_10yr)
 ```
 
 # Example 2: Age-Standardised Rates with WHO Standard Population
 
-Now let's calculate age-standardised incidence rates using the WHO standard population. We'll use the person-years data we just calculated.
+Now let's calculate age-standardised incidence rates using the WHO standard population. With the updated defaults, this is now much simpler since the age groups match automatically.
 
 ```{r asr-example}
-# Prepare data for ASR calculation using WHO standard population
-# We need to match our age groups to the WHO standard population
+# Method 1: Direct calculation using WHO-compatible age groups (recommended)
+# The default age groups now match WHO 2000-2025 Standard Population exactly
 
-# First, let's see what age groups we have in our person-years data
-print("Age groups in our data:")
-print(person_years_10yr$age_group)
+# First, let's verify the age groups match
+print("Age groups from our person-years calculation:")
+print(levels(person_years_who$age_group))
 
-print("Age groups in WHO standard population:")
+print("WHO 2000-2025 Standard Population age groups:")
 print(who_2000_2025_standard_population$age_group)
 
+print("Age groups match perfectly:", 
+      identical(levels(person_years_who$age_group), who_2000_2025_standard_population$age_group))
+
+# Merge with WHO standard population data directly
+asr_data_who <- person_years_who |>
+  left_join(
+    who_2000_2025_standard_population |>
+      select(age_group, standard_pop = standard_for_seer_stat),
+    by = "age_group"
+  ) |>
+  filter(person_years > 0) |>  # Ensure positive person-years for all groups
+  select(age_group, events, person_years, standard_pop)
+
+print("Data prepared for ASR calculation (direct WHO matching):")
+print(asr_data_who)
+
+# Calculate age-standardised rates
+asr_result_who <- calculate_asr_direct(asr_data_who)
+
+print("Age-Standardised Rate Results (WHO age groups):")
+print(paste("Crude rate:", round(asr_result_who$crude_rate_scaled, 2), "per 100,000"))
+print(paste("Age-standardised rate:", round(asr_result_who$asr_scaled, 2), "per 100,000"))
+print(paste("95% CI:", round(asr_result_who$ci_lower_scaled, 2), "-", round(asr_result_who$ci_upper_scaled, 2)))
+print(paste("Total events:", asr_result_who$total_events))
+print(paste("Total person-years:", asr_result_who$total_person_years))
+
+# Method 2: Using custom age groups (for comparison)
+# If you need custom age groups, you can still aggregate WHO data to match
+
 # Create a mapping to match our 10-year age groups to WHO standard population
-# We'll aggregate WHO age groups to match our 10-year groups
 who_aggregated <- who_2000_2025_standard_population |>
   mutate(
     age_group_10yr = case_when(
@@ -114,7 +144,7 @@ who_aggregated <- who_2000_2025_standard_population |>
       lower_age_limit < 70 ~ "[60-70)",
       lower_age_limit < 80 ~ "[70-80)",
       lower_age_limit < 90 ~ "[80-90)",
-      TRUE ~ "[90-100)"
+      lower_age_limit >= 90 ~ "[90+)"
     )
   ) |>
   group_by(age_group_10yr) |>
@@ -123,36 +153,36 @@ who_aggregated <- who_2000_2025_standard_population |>
     .groups = "drop"
   )
 
-print("Aggregated WHO standard population:")
-print(who_aggregated)
-
-# Merge with our person-years data
-asr_data <- person_years_10yr |>
+# Merge with our 10-year person-years data
+asr_data_10yr <- person_years_10yr |>
   left_join(who_aggregated, by = c("age_group" = "age_group_10yr")) |>
   filter(!is.na(standard_pop)) |>  # Remove any age groups not in WHO data
   filter(person_years > 0) |>  # Ensure positive person-years for all groups
   select(age_group, events, person_years, standard_pop)
 
-print("Data prepared for ASR calculation:")
-print(asr_data)
+print("Data prepared for ASR calculation (10-year age groups):")
+print(asr_data_10yr)
 
-# Calculate age-standardised rates
-asr_result <- calculate_asr_direct(asr_data)
+# Calculate age-standardised rates using 10-year age groups
+asr_result_10yr <- calculate_asr_direct(asr_data_10yr)
 
-# Display results
-print("Age-Standardised Rate Results:")
-print(paste("Crude rate:", round(asr_result$crude_rate_scaled, 2), "per 100,000"))
-print(paste("Age-standardised rate:", round(asr_result$asr_scaled, 2), "per 100,000"))
-print(paste("95% CI:", round(asr_result$ci_lower_scaled, 2), "-", round(asr_result$ci_upper_scaled, 2)))
-print(paste("Total events:", asr_result$total_events))
-print(paste("Total person-years:", asr_result$total_person_years))
+# Display comparison between WHO and 10-year age group results
+print("Age-Standardised Rate Results (10-year age groups):")
+print(paste("Crude rate:", round(asr_result_10yr$crude_rate_scaled, 2), "per 100,000"))
+print(paste("Age-standardised rate:", round(asr_result_10yr$asr_scaled, 2), "per 100,000"))
+print(paste("95% CI:", round(asr_result_10yr$ci_lower_scaled, 2), "-", round(asr_result_10yr$ci_upper_scaled, 2)))
 
-# View age-specific details
-print("Age-specific details:")
-print(asr_result$age_specific_data[[1]])
+# Compare the two approaches
+print("Comparison of age standardisation approaches:")
+print(paste("WHO age groups ASR:", round(asr_result_who$asr_scaled, 2), "per 100,000"))
+print(paste("10-year age groups ASR:", round(asr_result_10yr$asr_scaled, 2), "per 100,000"))
 
-# Note: We filtered out age groups with zero person-years above
-# The function requires positive person-years but allows zero/small case counts
+# View age-specific details from WHO age groups
+print("Age-specific details (WHO age groups):")
+print(head(asr_result_who$age_specific_data[[1]], 10))
+
+# Note: The WHO age groups provide more precise age standardisation
+# while custom age groups may be useful for specific analytical needs
 ```
 
 ## Handling Small Case Counts
@@ -423,17 +453,20 @@ print(p_prev)
 ## `calculate_person_years_by_age_strata()`
 
 - Calculates person-years of follow-up by age groups
-- Handles age transitions during follow-up period
-- Flexible age group definitions
+- **Default age groups now match WHO 2000-2025 Standard Population exactly**
+- Handles age transitions during follow-up period automatically
+- Flexible age group definitions for custom analyses
+- Final age group displays as "[100+)" to match WHO format
 - Returns events and person-years by age strata
 
 ## `calculate_asr_direct()`
 
 - Calculates age-standardised rates using direct standardisation
-- Supports two confidence interval methods: gamma distribution (default) and Byar's/Dobson approximation
-- Includes smart warnings for small/zero case counts with user control
-- Requires data with columns: `age_group`, `events`, `person_years`, `standard_pop`
-- Returns comprehensive results including crude rates, ASRs, and confidence intervals
+- **Works seamlessly with WHO age groups from person-years function**
+- Supports both incidence rates and prevalence calculations
+- Two confidence interval methods: gamma distribution (default) and Byar's/Dobson approximation
+- Smart warnings for small/zero case counts with user control
+- Returns comprehensive results including crude rates, ASRs, confidence intervals, and totals
 
 ## WHO Standard Population Data
 
