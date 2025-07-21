@@ -100,8 +100,10 @@ Both methods are statistically valid; differences are typically minimal.</p></dd
 
 <dt id="arg-warn-small-cases">warn_small_cases<a class="anchor" aria-label="anchor" href="#arg-warn-small-cases"></a></dt>
 <dd><p>Logical. If TRUE (default), warns when age groups
-have zero or &lt; 5 cases which may lead to unstable rate estimates. Consider
-wider age groups for more stable results.</p></dd>
+have zero or &lt; 5 cases which may lead to unstable rate estimates, and warns
+when age groups with zero person-years are automatically excluded. Set to
+FALSE to suppress these data quality warnings. Consider wider age groups
+for more stable results.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -129,11 +131,12 @@ interval bounds and is appropriate for rate data.</p>
 where w_i are standardised weights and r_i are age-specific rates</p>
 <p><strong>Incidence vs Prevalence:</strong></p><ul><li><p><strong>Incidence rates</strong>: Use person-years of follow-up in denominator, typically expressed per 100,000</p></li>
 <li><p><strong>Prevalence rates</strong>: Use total individuals examined in denominator, typically expressed as percentages (set multiplier = 100)</p></li>
-</ul><p><strong>Age Grouping Considerations:</strong></p><ul><li><p>Zero cases are allowed but may indicate very low incidence or small populations</p></li>
+</ul><p><strong>Age Grouping Considerations:</strong></p><ul><li><p>Age groups with zero person-years are automatically excluded from calculation</p></li>
+<li><p>Zero cases are allowed but may indicate very low incidence or small populations</p></li>
 <li><p>Age groups with &lt; 5 cases produce less stable rate estimates and wider confidence intervals</p></li>
 <li><p>Consider wider age groups if many strata have very few cases</p></li>
-<li><p>All age groups must have positive person-years (mathematical requirement)</p></li>
 <li><p>The function balances statistical stability with age-specific precision</p></li>
+<li><p>Use <code>warn_small_cases = FALSE</code> to suppress data quality warnings</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
