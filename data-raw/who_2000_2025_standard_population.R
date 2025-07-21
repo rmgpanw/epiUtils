@@ -16,7 +16,11 @@ who_2000_2025_standard_population <- read_html("https://seer.cancer.gov/stdpopul
                   stringr::str_remove_all("\\*") |>
                   as.integer())) |>
   filter(age_group != "Total") |>
-  mutate(lower_age_limit = as.integer(stringr::str_remove(age_group, "[-|+].*")))
+  mutate(lower_age_limit = as.integer(stringr::str_remove(age_group, "[-|+].*")),
+         upper_age_limit = as.integer(stringr::str_remove(age_group, ".*[-|+]"))) |>
+  mutate(age_group = case_when(age_group == "100+" ~ "[100+)",
+                               TRUE ~ paste0("[", lower_age_limit, "-", upper_age_limit + 1, ")"))) |>
+  select(-upper_age_limit)
 
 # ensure no NA values inadvertently introduced
 stopifnot(identical(who_2000_2025_standard_population, na.omit(who_2000_2025_standard_population)))
