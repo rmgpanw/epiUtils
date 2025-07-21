@@ -338,18 +338,32 @@ test_that("calculate_person_years_by_age_strata edge cases work correctly", {
     calculate_person_years_by_age_strata(edge_data)
   )
   
-  # Test with very old patients (should work but may produce warnings)
+  # Test with very old patients (should work without warnings since default goes to 150)
   old_data <- data.frame(
     patient_id = 1:2,
-    dob = as.Date(c("1920-01-15", "1925-06-20")),  # Very old patients
+    dob = as.Date(c("1920-01-15", "1925-06-20")),  # Very old patients (~95-100 years)
     study_entry_date = as.Date(c("2020-03-01", "2021-01-01")),
     study_exit_date = as.Date(c("2024-06-15", "2025-12-31")),
     event_status = c(1L, 0L)
   )
   
-  # Should not error, but may produce warnings about very old age groups
+  # Should not error or warn since ages 95-100 are within default range [0-150)
+  expect_silent(
+    calculate_person_years_by_age_strata(old_data)
+  )
+  
+  # Test with extremely old patients that would exceed default range
+  extremely_old_data <- data.frame(
+    patient_id = 1:2,
+    dob = as.Date(c("1870-01-15", "1875-06-20")),  # Extremely old patients (~145-150 years)
+    study_entry_date = as.Date(c("2020-03-01", "2021-01-01")),
+    study_exit_date = as.Date(c("2024-06-15", "2025-12-31")),
+    event_status = c(1L, 0L)
+  )
+  
+  # Should produce warnings about very old age groups exceeding default range
   expect_warning(
-    calculate_person_years_by_age_strata(old_data),
+    calculate_person_years_by_age_strata(extremely_old_data),
     regex = ".*"  # Allow any warning
   )
 })

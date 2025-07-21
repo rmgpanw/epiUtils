@@ -7,14 +7,16 @@
 calculate_person_years_by_age_strata(
   .df,
   age_cut_points = c(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
-    85, 90, 95, 100)
+    85, 90, 95, 100, 150)
 )
 }
 \arguments{
 \item{.df}{A data frame containing individual-level follow-up data}
 
 \item{age_cut_points}{Numeric vector of age breakpoints defining the age strata.
-Default is 5-year age groups from 0 to 100: \code{c(0, 5, 10, ..., 95, 100)}}
+Default is 5-year age groups from 0 to 100+: \code{c(0, 5, 10, ..., 95, 100, 150)}.
+This matches the WHO 2000-2025 Standard Population age groups. The final
+age group is displayed as "[100+)" regardless of the upper cut point value.}
 }
 \value{
 A tibble containing:

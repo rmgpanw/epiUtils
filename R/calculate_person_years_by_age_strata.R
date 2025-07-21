@@ -6,7 +6,9 @@
 #'
 #' @param .df A data frame containing individual-level follow-up data
 #' @param age_cut_points Numeric vector of age breakpoints defining the age strata.
-#'   Default is 5-year age groups from 0 to 100: `c(0, 5, 10, ..., 95, 100)`
+#'   Default is 5-year age groups from 0 to 100+: `c(0, 5, 10, ..., 95, 100, 150)`.
+#'   This matches the WHO 2000-2025 Standard Population age groups. The final 
+#'   age group is displayed as "[100+)" regardless of the upper cut point value.
 #'
 #' @details
 #' The function requires the following columns in `.df`:
@@ -43,7 +45,7 @@
 #'
 #' @export
 calculate_person_years_by_age_strata <- function(.df,
-                                                     age_cut_points = c(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100)) {
+                                                     age_cut_points = c(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 150)) {
 
   # Input validation
   if (!is.data.frame(.df)) {
@@ -191,6 +193,8 @@ calculate_person_years_by_age_strata <- function(.df,
       stringr::str_replace(stringr::str_trim(.data[["age_group"]]), "\\+\\s+thru\\s+", "-"),
       ")"
     )) |>
+    # Convert the final age group to match WHO format [100+)
+    dplyr::mutate("age_group" = stringr::str_replace(.data[["age_group"]], "\\[100-\\d+\\)", "[100+)")) |>
     dplyr::mutate("age_group" = factor(.data[["age_group"]], levels = unique(.data[["age_group"]])))
 
   return(result)
