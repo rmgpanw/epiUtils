@@ -100,12 +100,12 @@ studies.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 6</span></span></span>
 <span><span class="co">#&gt;   age_group who_world_standard_perc…¹ recalculation_to_add…² rounded_to_integers</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 0-4                            8.86                 <span style="text-decoration: underline;">88</span>569.               <span style="text-decoration: underline;">88</span>569</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 5-9                            8.69                 <span style="text-decoration: underline;">86</span>870.               <span style="text-decoration: underline;">86</span>870</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 10-14                          8.6                  <span style="text-decoration: underline;">85</span>970.               <span style="text-decoration: underline;">85</span>970</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 15-19                          8.47                 <span style="text-decoration: underline;">84</span>670.               <span style="text-decoration: underline;">84</span>670</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 20-24                          8.22                 <span style="text-decoration: underline;">82</span>171.               <span style="text-decoration: underline;">82</span>171</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 25-29                          7.93                 <span style="text-decoration: underline;">79</span>272.               <span style="text-decoration: underline;">79</span>272</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> [0-5)                          8.86                 <span style="text-decoration: underline;">88</span>569.               <span style="text-decoration: underline;">88</span>569</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> [5-10)                         8.69                 <span style="text-decoration: underline;">86</span>870.               <span style="text-decoration: underline;">86</span>870</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> [10-15)                        8.6                  <span style="text-decoration: underline;">85</span>970.               <span style="text-decoration: underline;">85</span>970</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> [15-20)                        8.47                 <span style="text-decoration: underline;">84</span>670.               <span style="text-decoration: underline;">84</span>670</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> [20-25)                        8.22                 <span style="text-decoration: underline;">82</span>171.               <span style="text-decoration: underline;">82</span>171</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> [25-30)                        7.93                 <span style="text-decoration: underline;">79</span>272.               <span style="text-decoration: underline;">79</span>272</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ abbreviated names: ¹​who_world_standard_percent,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   ²​recalculation_to_add_to_1million</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: standard_for_seer_stat &lt;int&gt;, lower_age_limit &lt;int&gt;</span></span></span>
@@ -113,7 +113,7 @@ studies.</p>
 <span><span class="co"># Summary of the data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">who_2000_2025_standard_population</span><span class="op">)</span></span>
 <span><span class="co">#&gt; tibble [21 × 6] (S3: tbl_df/tbl/data.frame)</span></span>
-<span><span class="co">#&gt;  $ age_group                       : chr [1:21] "0-4" "5-9" "10-14" "15-19" ...</span></span>
+<span><span class="co">#&gt;  $ age_group                       : chr [1:21] "[0-5)" "[5-10)" "[10-15)" "[15-20)" ...</span></span>
 <span><span class="co">#&gt;  $ who_world_standard_percent      : num [1:21] 8.86 8.69 8.6 8.47 8.22 7.93 7.61 7.15 6.59 6.04 ...</span></span>
 <span><span class="co">#&gt;  $ recalculation_to_add_to_1million: num [1:21] 88569 86870 85970 84670 82171 ...</span></span>
 <span><span class="co">#&gt;  $ rounded_to_integers             : int [1:21] 88569 86870 85970 84670 82171 79272 76073 71475 65877 60379 ...</span></span>
@@ -223,9 +223,10 @@ calculated.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age groups in WHO standard population:"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Age groups in WHO standard population:"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">who_2000_2025_standard_population</span><span class="op">$</span><span class="va">age_group</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "0-4"   "5-9"   "10-14" "15-19" "20-24" "25-29" "30-34" "35-39" "40-44"</span></span>
-<span><span class="co">#&gt; [10] "45-49" "50-54" "55-59" "60-64" "65-69" "70-74" "75-79" "80-84" "85-89"</span></span>
-<span><span class="co">#&gt; [19] "90-94" "95-99" "100+"</span></span>
+<span><span class="co">#&gt;  [1] "[0-5)"    "[5-10)"   "[10-15)"  "[15-20)"  "[20-25)"  "[25-30)" </span></span>
+<span><span class="co">#&gt;  [7] "[30-35)"  "[35-40)"  "[40-45)"  "[45-50)"  "[50-55)"  "[55-60)" </span></span>
+<span><span class="co">#&gt; [13] "[60-65)"  "[65-70)"  "[70-75)"  "[75-80)"  "[80-85)"  "[85-90)" </span></span>
+<span><span class="co">#&gt; [19] "[90-95)"  "[95-100)" "[100+)"</span></span>
 <span></span>
 <span><span class="co"># Create a mapping to match our 10-year age groups to WHO standard population</span></span>
 <span><span class="co"># We'll aggregate WHO age groups to match our 10-year groups</span></span>
@@ -503,26 +504,26 @@ age groups.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 15 × 4</span></span></span>
 <span><span class="co">#&gt;    age_group events person_years standard_pop</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4            2        <span style="text-decoration: underline;">63</span>433        <span style="text-decoration: underline;">88</span>569</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9            3        <span style="text-decoration: underline;">81</span>577        <span style="text-decoration: underline;">86</span>870</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14          6       <span style="text-decoration: underline;">159</span>943        <span style="text-decoration: underline;">85</span>970</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19          6       <span style="text-decoration: underline;">177</span>820        <span style="text-decoration: underline;">84</span>670</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20-24         30       <span style="text-decoration: underline;">168</span>260        <span style="text-decoration: underline;">82</span>171</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29         18        <span style="text-decoration: underline;">99</span>794        <span style="text-decoration: underline;">79</span>272</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34         11        <span style="text-decoration: underline;">62</span>365        <span style="text-decoration: underline;">76</span>073</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39         16        <span style="text-decoration: underline;">92</span>829        <span style="text-decoration: underline;">71</span>475</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 40-44         48        <span style="text-decoration: underline;">85</span>625        <span style="text-decoration: underline;">65</span>877</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 45-49         61       <span style="text-decoration: underline;">107</span>785        <span style="text-decoration: underline;">60</span>379</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> 50-54         60       <span style="text-decoration: underline;">105</span>942        <span style="text-decoration: underline;">53</span>681</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> 55-59         47        <span style="text-decoration: underline;">82</span>686        <span style="text-decoration: underline;">45</span>484</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> 60-64        397       <span style="text-decoration: underline;">163</span>266        <span style="text-decoration: underline;">37</span>187</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> 65-69        422       <span style="text-decoration: underline;">173</span>252        <span style="text-decoration: underline;">29</span>590</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> 70-74        340       <span style="text-decoration: underline;">139</span>838        <span style="text-decoration: underline;">22</span>092</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> [0-5)          2        <span style="text-decoration: underline;">63</span>433        <span style="text-decoration: underline;">88</span>569</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> [5-10)         3        <span style="text-decoration: underline;">81</span>577        <span style="text-decoration: underline;">86</span>870</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> [10-15)        6       <span style="text-decoration: underline;">159</span>943        <span style="text-decoration: underline;">85</span>970</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> [15-20)        6       <span style="text-decoration: underline;">177</span>820        <span style="text-decoration: underline;">84</span>670</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> [20-25)       30       <span style="text-decoration: underline;">168</span>260        <span style="text-decoration: underline;">82</span>171</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> [25-30)       18        <span style="text-decoration: underline;">99</span>794        <span style="text-decoration: underline;">79</span>272</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> [30-35)       11        <span style="text-decoration: underline;">62</span>365        <span style="text-decoration: underline;">76</span>073</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> [35-40)       16        <span style="text-decoration: underline;">92</span>829        <span style="text-decoration: underline;">71</span>475</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> [40-45)       48        <span style="text-decoration: underline;">85</span>625        <span style="text-decoration: underline;">65</span>877</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> [45-50)       61       <span style="text-decoration: underline;">107</span>785        <span style="text-decoration: underline;">60</span>379</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> [50-55)       60       <span style="text-decoration: underline;">105</span>942        <span style="text-decoration: underline;">53</span>681</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> [55-60)       47        <span style="text-decoration: underline;">82</span>686        <span style="text-decoration: underline;">45</span>484</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> [60-65)      397       <span style="text-decoration: underline;">163</span>266        <span style="text-decoration: underline;">37</span>187</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> [65-70)      422       <span style="text-decoration: underline;">173</span>252        <span style="text-decoration: underline;">29</span>590</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> [70-75)      340       <span style="text-decoration: underline;">139</span>838        <span style="text-decoration: underline;">22</span>092</span></span>
 <span></span>
 <span><span class="co"># Calculate age-standardised incidence rates</span></span>
 <span><span class="va">cancer_asr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_asr_direct.html">calculate_asr_direct</a></span><span class="op">(</span><span class="va">cancer_data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: <span style="color: #BBBB00;">!</span> Found age groups with small/zero case counts:</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> &lt; 5 cases: 0-4 (2 cases), 5-9 (3 cases)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> &lt; 5 cases: [0-5) (2 cases), [5-10) (3 cases)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Small and zero case counts may produce unstable rate estimates</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Consider wider age groups, longer follow-up, or data quality checks</span></span>
 <span></span>
