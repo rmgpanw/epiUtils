@@ -12,6 +12,8 @@ A collection of utility functions for epidemiological analysis, including age-st
 Useful links:
 \itemize{
   \item \url{https://rmgpanw.github.io/epiUtils/}
+  \item \url{https://github.com/rmgpanw/epiUtils}
+  \item Report bugs at \url{https://github.com/rmgpanw/epiUtils/issues}
 }
 
 }

@@ -37,4 +37,6 @@ Depends:
     R (>= 4.2.0)
 LazyData: true
 VignetteBuilder: knitr
-URL: https://rmgpanw.github.io/epiUtils/
+URL: https://rmgpanw.github.io/epiUtils/, 
+  https://github.com/rmgpanw/epiUtils
+BugReports: https://github.com/rmgpanw/epiUtils/issues
