@@ -39,8 +39,10 @@ method uses Byar's approximation with Dobson adjustment (consistent with
 Both methods are statistically valid; differences are typically minimal.}
 
 \item{warn_small_cases}{Logical. If TRUE (default), warns when age groups
-have zero or < 5 cases which may lead to unstable rate estimates. Consider
-wider age groups for more stable results.}
+have zero or < 5 cases which may lead to unstable rate estimates, and warns
+when age groups with zero person-years are automatically excluded. Set to
+FALSE to suppress these data quality warnings. Consider wider age groups
+for more stable results.}
 }
 \value{
 A tibble containing:
@@ -84,11 +86,12 @@ where w_i are standardised weights and r_i are age-specific rates
 
 \strong{Age Grouping Considerations:}
 \itemize{
+\item Age groups with zero person-years are automatically excluded from calculation
 \item Zero cases are allowed but may indicate very low incidence or small populations
 \item Age groups with < 5 cases produce less stable rate estimates and wider confidence intervals
 \item Consider wider age groups if many strata have very few cases
-\item All age groups must have positive person-years (mathematical requirement)
 \item The function balances statistical stability with age-specific precision
+\item Use \code{warn_small_cases = FALSE} to suppress data quality warnings
 }
 }
 \examples{

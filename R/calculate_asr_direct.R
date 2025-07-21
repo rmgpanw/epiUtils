@@ -27,8 +27,10 @@
 #'   [PHEindicatormethods](https://CRAN.R-project.org/package=PHEindicatormethods)).
 #'   Both methods are statistically valid; differences are typically minimal.
 #' @param warn_small_cases Logical. If TRUE (default), warns when age groups
-#'   have zero or < 5 cases which may lead to unstable rate estimates. Consider
-#'   wider age groups for more stable results.
+#'   have zero or < 5 cases which may lead to unstable rate estimates, and warns 
+#'   when age groups with zero person-years are automatically excluded. Set to 
+#'   FALSE to suppress these data quality warnings. Consider wider age groups 
+#'   for more stable results.
 #'
 #' @return A tibble containing:
 #' - **crude_rate**: Crude incidence rate
@@ -57,11 +59,12 @@
 #' - **Prevalence rates**: Use total individuals examined in denominator, typically expressed as percentages (set multiplier = 100)
 #'
 #' **Age Grouping Considerations:**
+#' - Age groups with zero person-years are automatically excluded from calculation
 #' - Zero cases are allowed but may indicate very low incidence or small populations
 #' - Age groups with < 5 cases produce less stable rate estimates and wider confidence intervals
 #' - Consider wider age groups if many strata have very few cases
-#' - All age groups must have positive person-years (mathematical requirement)
 #' - The function balances statistical stability with age-specific precision
+#' - Use `warn_small_cases = FALSE` to suppress data quality warnings
 #'
 #' @examples
 #' # Example 1: Incidence rates (per 100,000)
@@ -157,6 +160,47 @@ calculate_asr_direct <- function(.df,
   ci_method <- rlang::arg_match(ci_method,
                                 values = c("gamma", "byars"))
 
+  # Check for non-negative values
+  if (any(.df$events < 0)) {
+    cli::cli_abort(c(
+      "x" = "Column 'events' must contain non-negative values",
+      "i" = "Found negative values"
+    ))
+  }
+
+  if (any(.df$person_years < 0)) {
+    cli::cli_abort(c(
+      "x" = "Column 'person_years' must contain non-negative values",
+      "i" = "Found negative values"
+    ))
+  }
+
+  # Handle zero person-years groups - exclude them automatically
+  zero_py_groups <- .df$person_years == 0
+  if (any(zero_py_groups)) {
+    zero_py_ages <- .df$age_group[zero_py_groups]
+    n_excluded <- sum(zero_py_groups)
+    
+    if (warn_small_cases) {
+      cli::cli_warn(c(
+        "!" = "Excluding {n_excluded} age group{?s} with zero person-years:",
+        "*" = "{paste(zero_py_ages, collapse = ', ')}",
+        "i" = "Age-standardised rates can only be calculated for groups with positive person-years"
+      ))
+    }
+    
+    # Filter out zero person-years groups
+    .df <- .df[!zero_py_groups, , drop = FALSE]
+    
+    # Check if any data remains
+    if (nrow(.df) == 0) {
+      cli::cli_abort(c(
+        "x" = "No age groups remain after excluding those with zero person-years",
+        "i" = "All age groups had zero person-years"
+      ))
+    }
+  }
+
   # Warn about small and zero case counts (but allow them)
   if (warn_small_cases) {
     small_case_groups <- .df$events < 5 & .df$events > 0
@@ -189,25 +233,18 @@ calculate_asr_direct <- function(.df,
     }
   }
 
-  # Check for non-negative values
-  if (any(.df$events < 0)) {
-    cli::cli_abort(c(
-      "x" = "Column 'events' must contain non-negative values",
-      "i" = "Found negative values"
-    ))
-  }
-
-  if (any(.df$person_years <= 0)) {
-    cli::cli_abort(c(
-      "x" = "Column 'person_years' must contain positive values",
-      "i" = "Found non-positive values"
-    ))
-  }
-
   if (any(.df$standard_pop <= 0)) {
     cli::cli_abort(c(
       "x" = "Column 'standard_pop' must contain positive values",
       "i" = "Found non-positive values"
+    ))
+  }
+
+  # Final check: ensure remaining person-years are positive
+  if (any(.df$person_years <= 0)) {
+    cli::cli_abort(c(
+      "x" = "Internal error: person_years should be positive after filtering",
+      "i" = "This should not happen - please report this bug"
     ))
   }
 

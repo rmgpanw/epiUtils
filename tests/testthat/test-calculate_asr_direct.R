@@ -539,14 +539,25 @@ test_that("calculate_asr_direct handles small and zero case counts appropriately
   expect_equal(result1$ci_lower, result2$ci_lower)
   expect_equal(result1$ci_upper, result2$ci_upper)
 
-  # Test that zero person-years still fails
-  bad_data <- test_data
-  bad_data$person_years[1] <- 0
-
-  expect_error(
-    suppressWarnings(calculate_asr_direct(bad_data)),
-    "person_years.*positive values"
+  # Test that zero person-years now works with warning (and excludes those groups)
+  # Use data without small case counts to isolate the zero person-years warning
+  zero_py_test_data <- data.frame(
+    age_group = c("0-20", "20-40", "40-60"),
+    events = c(10L, 15L, 25L),  # All adequate case counts
+    person_years = c(1000, 1500, 2000),
+    standard_pop = c(2500, 3000, 2000)
   )
+  
+  # Set first row to zero person-years
+  zero_py_test_data$person_years[1] <- 0
+
+  expect_warning(
+    result_with_zero <- calculate_asr_direct(zero_py_test_data),
+    "Excluding.*age group.*with zero person-years"
+  )
+  
+  # Should have one fewer age group than original
+  expect_equal(nrow(result_with_zero$age_specific_data[[1]]), 2)
 })
 
 test_that("calculate_asr_direct warning messages are informative", {
