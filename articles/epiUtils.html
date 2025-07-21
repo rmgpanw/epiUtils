@@ -124,8 +124,8 @@ studies.</p>
 <h2 id="example-1-calculate-person-years-by-age-strata">Example 1: Calculate Person-Years by Age Strata<a class="anchor" aria-label="anchor" href="#example-1-calculate-person-years-by-age-strata"></a>
 </h2>
 <p>Let’s start with an example of calculating person-years for a cohort
-study. We’ll create some example data and then use the built-in
-function.</p>
+study. The default age groups now match the WHO 2000-2025 Standard
+Population, making it easy to calculate age-standardised rates.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create example cohort data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -155,40 +155,35 @@ function.</p>
 <span><span class="co">#&gt; 5          5 1964-03-10       2020-06-06      2023-09-09            0</span></span>
 <span><span class="co">#&gt; 6          6 1938-03-10       2020-03-04      2024-04-02            0</span></span>
 <span></span>
-<span><span class="co"># Calculate person-years by 5-year age groups (default)</span></span>
-<span><span class="va">person_years_5yr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_person_years_by_age_strata.html">calculate_person_years_by_age_strata</a></span><span class="op">(</span><span class="va">cohort_data</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">person_years_5yr</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 20 × 4</span></span></span>
+<span><span class="co"># Calculate person-years by 5-year age groups (default - matches WHO age groups)</span></span>
+<span><span class="va">person_years_who</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_person_years_by_age_strata.html">calculate_person_years_by_age_strata</a></span><span class="op">(</span><span class="va">cohort_data</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Person-years by WHO-compatible age groups:"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Person-years by WHO-compatible age groups:"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">person_years_who</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 21 × 4</span></span></span>
 <span><span class="co">#&gt;    age_group person_years events     n</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> [0-5)              0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> [5-10)             0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> [10-15)            0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> [15-20)            0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> [20-25)            0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> [25-30)            0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> [30-35)            0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> [35-40)            0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> [40-45)            0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> [45-50)            0        0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> [50-55)           28.5      0    14</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> [55-60)           48.5      5    24</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> [60-65)           50.6      4    25</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> [65-70)           66.5      3    29</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> [70-75)           42.7      0    21</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> [75-80)           27.6      4    18</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> [80-85)           42.2      0    20</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> [85-90)           32.5      1    21</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> [90-95)           16.3      1     7</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> [95-100)           0        0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> [0-5)                0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> [5-10)               0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> [10-15)              0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> [15-20)              0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> [20-25)              0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> [25-30)              0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> [30-35)              0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> [35-40)              0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> [40-45)              0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> [45-50)              0      0     0</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 11 more rows</span></span></span>
 <span></span>
-<span><span class="co"># Calculate person-years using custom age groups (10-year groups)</span></span>
+<span><span class="co"># Calculate person-years using custom age groups (10-year groups for comparison)</span></span>
 <span><span class="va">person_years_10yr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_person_years_by_age_strata.html">calculate_person_years_by_age_strata</a></span><span class="op">(</span></span>
 <span>  <span class="va">cohort_data</span>, </span>
-<span>  age_cut_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span>, <span class="fl">50</span>, <span class="fl">60</span>, <span class="fl">70</span>, <span class="fl">80</span>, <span class="fl">90</span>, <span class="fl">100</span><span class="op">)</span></span>
+<span>  age_cut_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span>, <span class="fl">50</span>, <span class="fl">60</span>, <span class="fl">70</span>, <span class="fl">80</span>, <span class="fl">90</span>, <span class="fl">100</span>, <span class="fl">150</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Person-years by 10-year age groups:"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Person-years by 10-year age groups:"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">person_years_10yr</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 4</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 11 × 4</span></span></span>
 <span><span class="co">#&gt;    age_group person_years events     n</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> [0-10)             0        0     0</span></span>
@@ -200,36 +195,91 @@ function.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> [60-70)          117.       7    39</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> [70-80)           70.3      4    30</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> [80-90)           74.7      1    28</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> [90-100)          16.3      1     7</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> [90-100)          16.3      1     7</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> [100+)             0        0     0</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example-2-age-standardised-rates-with-who-standard-population">Example 2: Age-Standardised Rates with WHO Standard Population<a class="anchor" aria-label="anchor" href="#example-2-age-standardised-rates-with-who-standard-population"></a>
 </h2>
 <p>Now let’s calculate age-standardised incidence rates using the WHO
-standard population. We’ll use the person-years data we just
-calculated.</p>
+standard population. With the updated defaults, this is now much simpler
+since the age groups match automatically.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Prepare data for ASR calculation using WHO standard population</span></span>
-<span><span class="co"># We need to match our age groups to the WHO standard population</span></span>
+<code class="sourceCode R"><span><span class="co"># Method 1: Direct calculation using WHO-compatible age groups (recommended)</span></span>
+<span><span class="co"># The default age groups now match WHO 2000-2025 Standard Population exactly</span></span>
 <span></span>
-<span><span class="co"># First, let's see what age groups we have in our person-years data</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age groups in our data:"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Age groups in our data:"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">person_years_10yr</span><span class="op">$</span><span class="va">age_group</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] [0-10)   [10-20)  [20-30)  [30-40)  [40-50)  [50-60)  [60-70)  [70-80) </span></span>
-<span><span class="co">#&gt;  [9] [80-90)  [90-100)</span></span>
-<span><span class="co">#&gt; 10 Levels: [0-10) [10-20) [20-30) [30-40) [40-50) [50-60) [60-70) ... [90-100)</span></span>
+<span><span class="co"># First, let's verify the age groups match</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age groups from our person-years calculation:"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Age groups from our person-years calculation:"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">person_years_who</span><span class="op">$</span><span class="va">age_group</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] "[0-5)"    "[5-10)"   "[10-15)"  "[15-20)"  "[20-25)"  "[25-30)" </span></span>
+<span><span class="co">#&gt;  [7] "[30-35)"  "[35-40)"  "[40-45)"  "[45-50)"  "[50-55)"  "[55-60)" </span></span>
+<span><span class="co">#&gt; [13] "[60-65)"  "[65-70)"  "[70-75)"  "[75-80)"  "[80-85)"  "[85-90)" </span></span>
+<span><span class="co">#&gt; [19] "[90-95)"  "[95-100)" "[100+)"</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age groups in WHO standard population:"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Age groups in WHO standard population:"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"WHO 2000-2025 Standard Population age groups:"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "WHO 2000-2025 Standard Population age groups:"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">who_2000_2025_standard_population</span><span class="op">$</span><span class="va">age_group</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "[0-5)"    "[5-10)"   "[10-15)"  "[15-20)"  "[20-25)"  "[25-30)" </span></span>
 <span><span class="co">#&gt;  [7] "[30-35)"  "[35-40)"  "[40-45)"  "[45-50)"  "[50-55)"  "[55-60)" </span></span>
 <span><span class="co">#&gt; [13] "[60-65)"  "[65-70)"  "[70-75)"  "[75-80)"  "[80-85)"  "[85-90)" </span></span>
 <span><span class="co">#&gt; [19] "[90-95)"  "[95-100)" "[100+)"</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age groups match perfectly:"</span>, </span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">person_years_who</span><span class="op">$</span><span class="va">age_group</span><span class="op">)</span>, <span class="va">who_2000_2025_standard_population</span><span class="op">$</span><span class="va">age_group</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Age groups match perfectly:"</span></span>
+<span></span>
+<span><span class="co"># Merge with WHO standard population data directly</span></span>
+<span><span class="va">asr_data_who</span> <span class="op">&lt;-</span> <span class="va">person_years_who</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span></span>
+<span>    <span class="va">who_2000_2025_standard_population</span> <span class="op">|&gt;</span></span>
+<span>      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">age_group</span>, standard_pop <span class="op">=</span> <span class="va">standard_for_seer_stat</span><span class="op">)</span>,</span>
+<span>    by <span class="op">=</span> <span class="st">"age_group"</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">person_years</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span>  <span class="co"># Ensure positive person-years for all groups</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">age_group</span>, <span class="va">events</span>, <span class="va">person_years</span>, <span class="va">standard_pop</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Data prepared for ASR calculation (direct WHO matching):"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Data prepared for ASR calculation (direct WHO matching):"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">asr_data_who</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 9 × 4</span></span></span>
+<span><span class="co">#&gt;   age_group events person_years standard_pop</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> [50-55)        0         28.5        <span style="text-decoration: underline;">53</span>681</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> [55-60)        5         48.5        <span style="text-decoration: underline;">45</span>484</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> [60-65)        4         50.6        <span style="text-decoration: underline;">37</span>187</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> [65-70)        3         66.5        <span style="text-decoration: underline;">29</span>590</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> [70-75)        0         42.7        <span style="text-decoration: underline;">22</span>092</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> [75-80)        4         27.6        <span style="text-decoration: underline;">15</span>195</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> [80-85)        0         42.2         <span style="text-decoration: underline;">9</span>097</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> [85-90)        1         32.5         <span style="text-decoration: underline;">4</span>398</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> [90-95)        1         16.3         <span style="text-decoration: underline;">1</span>500</span></span>
+<span></span>
+<span><span class="co"># Calculate age-standardised rates</span></span>
+<span><span class="va">asr_result_who</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_asr_direct.html">calculate_asr_direct</a></span><span class="op">(</span><span class="va">asr_data_who</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: <span style="color: #BBBB00;">!</span> Found age groups with small/zero case counts:</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> zero cases: [50-55), [70-75), [80-85) and &lt; 5 cases: [60-65) (4 cases),</span></span>
+<span><span class="co">#&gt;   [65-70) (3 cases), [75-80) (4 cases), [85-90) (1 case), [90-95) (1 case)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Small and zero case counts may produce unstable rate estimates</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Consider wider age groups, longer follow-up, or data quality checks</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age-Standardised Rate Results (WHO age groups):"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Age-Standardised Rate Results (WHO age groups):"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Crude rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_who</span><span class="op">$</span><span class="va">crude_rate_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"per 100,000"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Crude rate: 5064.91 per 100,000"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Age-standardised rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_who</span><span class="op">$</span><span class="va">asr_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"per 100,000"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Age-standardised rate: 5223.67 per 100,000"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"95% CI:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_who</span><span class="op">$</span><span class="va">ci_lower_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_who</span><span class="op">$</span><span class="va">ci_upper_scaled</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "95% CI: 2953.5 - 9563.6"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Total events:"</span>, <span class="va">asr_result_who</span><span class="op">$</span><span class="va">total_events</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Total events: 18"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Total person-years:"</span>, <span class="va">asr_result_who</span><span class="op">$</span><span class="va">total_person_years</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Total person-years: 355.386721423682"</span></span>
+<span></span>
+<span><span class="co"># Method 2: Using custom age groups (for comparison)</span></span>
+<span><span class="co"># If you need custom age groups, you can still aggregate WHO data to match</span></span>
+<span></span>
 <span><span class="co"># Create a mapping to match our 10-year age groups to WHO standard population</span></span>
-<span><span class="co"># We'll aggregate WHO age groups to match our 10-year groups</span></span>
 <span><span class="va">who_aggregated</span> <span class="op">&lt;-</span> <span class="va">who_2000_2025_standard_population</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>    age_group_10yr <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
@@ -242,7 +292,7 @@ calculated.</p>
 <span>      <span class="va">lower_age_limit</span> <span class="op">&lt;</span> <span class="fl">70</span> <span class="op">~</span> <span class="st">"[60-70)"</span>,</span>
 <span>      <span class="va">lower_age_limit</span> <span class="op">&lt;</span> <span class="fl">80</span> <span class="op">~</span> <span class="st">"[70-80)"</span>,</span>
 <span>      <span class="va">lower_age_limit</span> <span class="op">&lt;</span> <span class="fl">90</span> <span class="op">~</span> <span class="st">"[80-90)"</span>,</span>
-<span>      <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">"[90-100)"</span></span>
+<span>      <span class="va">lower_age_limit</span> <span class="op">&gt;=</span> <span class="fl">90</span> <span class="op">~</span> <span class="st">"[90+)"</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">age_group_10yr</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -251,79 +301,69 @@ calculated.</p>
 <span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Aggregated WHO standard population:"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Aggregated WHO standard population:"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">who_aggregated</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 2</span></span></span>
-<span><span class="co">#&gt;    age_group_10yr standard_pop</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> [0-10)               <span style="text-decoration: underline;">175</span>439</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> [10-20)              <span style="text-decoration: underline;">170</span>640</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> [20-30)              <span style="text-decoration: underline;">161</span>443</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> [30-40)              <span style="text-decoration: underline;">147</span>548</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> [40-50)              <span style="text-decoration: underline;">126</span>256</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> [50-60)               <span style="text-decoration: underline;">99</span>165</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> [60-70)               <span style="text-decoration: underline;">66</span>777</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> [70-80)               <span style="text-decoration: underline;">37</span>287</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> [80-90)               <span style="text-decoration: underline;">13</span>495</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> [90-100)               <span style="text-decoration: underline;">1</span>950</span></span>
-<span></span>
-<span><span class="co"># Merge with our person-years data</span></span>
-<span><span class="va">asr_data</span> <span class="op">&lt;-</span> <span class="va">person_years_10yr</span> <span class="op">|&gt;</span></span>
+<span><span class="co"># Merge with our 10-year person-years data</span></span>
+<span><span class="va">asr_data_10yr</span> <span class="op">&lt;-</span> <span class="va">person_years_10yr</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">who_aggregated</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age_group"</span> <span class="op">=</span> <span class="st">"age_group_10yr"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">standard_pop</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span>  <span class="co"># Remove any age groups not in WHO data</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">person_years</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span>  <span class="co"># Ensure positive person-years for all groups</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">age_group</span>, <span class="va">events</span>, <span class="va">person_years</span>, <span class="va">standard_pop</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Data prepared for ASR calculation:"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Data prepared for ASR calculation:"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">asr_data</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 4</span></span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Data prepared for ASR calculation (10-year age groups):"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Data prepared for ASR calculation (10-year age groups):"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">asr_data_10yr</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 4</span></span></span>
 <span><span class="co">#&gt;   age_group events person_years standard_pop</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> [50-60)        5         77.0        <span style="text-decoration: underline;">99</span>165</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> [60-70)        7        117.         <span style="text-decoration: underline;">66</span>777</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> [70-80)        4         70.3        <span style="text-decoration: underline;">37</span>287</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> [80-90)        1         74.7        <span style="text-decoration: underline;">13</span>495</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> [90-100)       1         16.3         <span style="text-decoration: underline;">1</span>950</span></span>
 <span></span>
-<span><span class="co"># Calculate age-standardised rates</span></span>
-<span><span class="va">asr_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_asr_direct.html">calculate_asr_direct</a></span><span class="op">(</span><span class="va">asr_data</span><span class="op">)</span></span>
+<span><span class="co"># Calculate age-standardised rates using 10-year age groups</span></span>
+<span><span class="va">asr_result_10yr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_asr_direct.html">calculate_asr_direct</a></span><span class="op">(</span><span class="va">asr_data_10yr</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: <span style="color: #BBBB00;">!</span> Found age groups with small/zero case counts:</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> &lt; 5 cases: [70-80) (4 cases), [80-90) (1 case), [90-100) (1 case)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> &lt; 5 cases: [70-80) (4 cases), [80-90) (1 case)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Small and zero case counts may produce unstable rate estimates</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Consider wider age groups, longer follow-up, or data quality checks</span></span>
 <span></span>
-<span><span class="co"># Display results</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age-Standardised Rate Results:"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Age-Standardised Rate Results:"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Crude rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result</span><span class="op">$</span><span class="va">crude_rate_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"per 100,000"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Crude rate: 5064.91 per 100,000"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Age-standardised rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result</span><span class="op">$</span><span class="va">asr_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"per 100,000"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Age-standardised rate: 5879.46 per 100,000"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"95% CI:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result</span><span class="op">$</span><span class="va">ci_lower_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result</span><span class="op">$</span><span class="va">ci_upper_scaled</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "95% CI: 3219.59 - 10140.92"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Total events:"</span>, <span class="va">asr_result</span><span class="op">$</span><span class="va">total_events</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Total events: 18"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Total person-years:"</span>, <span class="va">asr_result</span><span class="op">$</span><span class="va">total_person_years</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Total person-years: 355.386721423682"</span></span>
+<span><span class="co"># Display comparison between WHO and 10-year age group results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age-Standardised Rate Results (10-year age groups):"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Age-Standardised Rate Results (10-year age groups):"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Crude rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_10yr</span><span class="op">$</span><span class="va">crude_rate_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"per 100,000"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Crude rate: 5013.2 per 100,000"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Age-standardised rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_10yr</span><span class="op">$</span><span class="va">asr_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"per 100,000"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Age-standardised rate: 5877.1 per 100,000"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"95% CI:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_10yr</span><span class="op">$</span><span class="va">ci_lower_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_10yr</span><span class="op">$</span><span class="va">ci_upper_scaled</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "95% CI: 3198.72 - 10177.88"</span></span>
 <span></span>
-<span><span class="co"># View age-specific details</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age-specific details:"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Age-specific details:"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">asr_result</span><span class="op">$</span><span class="va">age_specific_data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 8</span></span></span>
+<span><span class="co"># Compare the two approaches</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Comparison of age standardisation approaches:"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Comparison of age standardisation approaches:"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"WHO age groups ASR:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_who</span><span class="op">$</span><span class="va">asr_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"per 100,000"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "WHO age groups ASR: 5223.67 per 100,000"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"10-year age groups ASR:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">asr_result_10yr</span><span class="op">$</span><span class="va">asr_scaled</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"per 100,000"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "10-year age groups ASR: 5877.1 per 100,000"</span></span>
+<span></span>
+<span><span class="co"># View age-specific details from WHO age groups</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Age-specific details (WHO age groups):"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Age-specific details (WHO age groups):"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">asr_result_who</span><span class="op">$</span><span class="va">age_specific_data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 9 × 8</span></span></span>
 <span><span class="co">#&gt;   age_group events person_years standard_pop age_specific_rate std_weight</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> [50-60)        5         77.0        <span style="text-decoration: underline;">99</span>165            0.065<span style="text-decoration: underline;">0</span>    0.453  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> [60-70)        7        117.         <span style="text-decoration: underline;">66</span>777            0.059<span style="text-decoration: underline;">8</span>    0.305  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> [70-80)        4         70.3        <span style="text-decoration: underline;">37</span>287            0.056<span style="text-decoration: underline;">9</span>    0.171  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> [80-90)        1         74.7        <span style="text-decoration: underline;">13</span>495            0.013<span style="text-decoration: underline;">4</span>    0.061<span style="text-decoration: underline;">7</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> [90-100)       1         16.3         <span style="text-decoration: underline;">1</span>950            0.061<span style="text-decoration: underline;">4</span>    0.008<span style="text-decoration: underline;">92</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> [50-55)        0         28.5        <span style="text-decoration: underline;">53</span>681            0         0.246  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> [55-60)        5         48.5        <span style="text-decoration: underline;">45</span>484            0.103     0.208  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> [60-65)        4         50.6        <span style="text-decoration: underline;">37</span>187            0.079<span style="text-decoration: underline;">1</span>    0.170  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> [65-70)        3         66.5        <span style="text-decoration: underline;">29</span>590            0.045<span style="text-decoration: underline;">1</span>    0.136  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> [70-75)        0         42.7        <span style="text-decoration: underline;">22</span>092            0         0.101  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> [75-80)        4         27.6        <span style="text-decoration: underline;">15</span>195            0.145     0.069<span style="text-decoration: underline;">6</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> [80-85)        0         42.2         <span style="text-decoration: underline;">9</span>097            0         0.041<span style="text-decoration: underline;">7</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> [85-90)        1         32.5         <span style="text-decoration: underline;">4</span>398            0.030<span style="text-decoration: underline;">8</span>    0.020<span style="text-decoration: underline;">2</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> [90-95)        1         16.3         <span style="text-decoration: underline;">1</span>500            0.061<span style="text-decoration: underline;">4</span>    0.006<span style="text-decoration: underline;">87</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: age_specific_rate_scaled &lt;dbl&gt;, contribution_to_asr &lt;dbl&gt;</span></span></span>
 <span></span>
-<span><span class="co"># Note: We filtered out age groups with zero person-years above</span></span>
-<span><span class="co"># The function requires positive person-years but allows zero/small case counts</span></span></code></pre></div>
+<span><span class="co"># Note: The WHO age groups provide more precise age standardisation</span></span>
+<span><span class="co"># while custom age groups may be useful for specific analytical needs</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="handling-small-case-counts">Handling Small Case Counts<a class="anchor" aria-label="anchor" href="#handling-small-case-counts"></a>
 </h3>
@@ -716,8 +756,11 @@ the population with the condition, standardised for age differences</li>
 </h3>
 <ul>
 <li>Calculates person-years of follow-up by age groups</li>
-<li>Handles age transitions during follow-up period</li>
-<li>Flexible age group definitions</li>
+<li><strong>Default age groups now match WHO 2000-2025 Standard
+Population exactly</strong></li>
+<li>Handles age transitions during follow-up period automatically</li>
+<li>Flexible age group definitions for custom analyses</li>
+<li>Final age group displays as “[100+)” to match WHO format</li>
 <li>Returns events and person-years by age strata</li>
 </ul>
 </div>
@@ -727,16 +770,14 @@ the population with the condition, standardised for age differences</li>
 </h3>
 <ul>
 <li>Calculates age-standardised rates using direct standardisation</li>
-<li>Supports two confidence interval methods: gamma distribution
-(default) and Byar’s/Dobson approximation</li>
-<li>Includes smart warnings for small/zero case counts with user
-control</li>
-<li>Requires data with columns: <code>age_group</code>,
-<code>events</code>, <code>person_years</code>,
-<code>standard_pop</code>
-</li>
-<li>Returns comprehensive results including crude rates, ASRs, and
-confidence intervals</li>
+<li><strong>Works seamlessly with WHO age groups from person-years
+function</strong></li>
+<li>Supports both incidence rates and prevalence calculations</li>
+<li>Two confidence interval methods: gamma distribution (default) and
+Byar’s/Dobson approximation</li>
+<li>Smart warnings for small/zero case counts with user control</li>
+<li>Returns comprehensive results including crude rates, ASRs,
+confidence intervals, and totals</li>
 </ul>
 </div>
 <div class="section level3">

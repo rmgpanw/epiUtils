@@ -48,7 +48,7 @@ across age groups as individuals age during the observation period.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_person_years_by_age_strata</span><span class="op">(</span></span>
 <span>  <span class="va">.df</span>,</span>
 <span>  age_cut_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span>, <span class="fl">10</span>, <span class="fl">15</span>, <span class="fl">20</span>, <span class="fl">25</span>, <span class="fl">30</span>, <span class="fl">35</span>, <span class="fl">40</span>, <span class="fl">45</span>, <span class="fl">50</span>, <span class="fl">55</span>, <span class="fl">60</span>, <span class="fl">65</span>, <span class="fl">70</span>, <span class="fl">75</span>, <span class="fl">80</span>,</span>
-<span>    <span class="fl">85</span>, <span class="fl">90</span>, <span class="fl">95</span>, <span class="fl">100</span><span class="op">)</span></span>
+<span>    <span class="fl">85</span>, <span class="fl">90</span>, <span class="fl">95</span>, <span class="fl">100</span>, <span class="fl">150</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -62,7 +62,9 @@ across age groups as individuals age during the observation period.</p>
 
 <dt id="arg-age-cut-points">age_cut_points<a class="anchor" aria-label="anchor" href="#arg-age-cut-points"></a></dt>
 <dd><p>Numeric vector of age breakpoints defining the age strata.
-Default is 5-year age groups from 0 to 100: <code>c(0, 5, 10, ..., 95, 100)</code></p></dd>
+Default is 5-year age groups from 0 to 100+: <code>c(0, 5, 10, ..., 95, 100, 150)</code>.
+This matches the WHO 2000-2025 Standard Population age groups. The final
+age group is displayed as "[100+)" regardless of the upper cut point value.</p></dd>
 
 </dl></div>
     <div class="section level2">
