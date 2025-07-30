@@ -16,27 +16,28 @@ Numeric vector of standard errors
 }
 \description{
 Calculates the standard error for a proportion using the formula:
-SE = 1 / (sqrt(2 * p * (1 - p)) * N)
+SE = sqrt(p * (1 - p) / n)
 }
 \details{
-This is commonly used in epidemiological studies to estimate the precision
-of prevalence estimates or risk ratios.
+This is the standard binomial standard error formula commonly used in
+epidemiological studies to estimate the precision of prevalence estimates.
 
-The standard error quantifies the uncertainty in a proportion estimate.
-Smaller standard errors indicate more precise estimates. The formula
-assumes a binomial distribution for the underlying count data.
+The standard error quantifies the uncertainty in a proportion estimate
+based on the binomial distribution. Smaller standard errors indicate 
+more precise estimates. This formula assumes that the observed proportion
+follows a binomial distribution.
 
 \strong{Requirements:}
 \itemize{
-\item \code{p} values must be between 0 and 1 (exclusive for this calculation)
+\item \code{p} values must be between 0 and 1 (inclusive)
 \item \code{n} values must be positive
 \item \code{p} and \code{n} must have the same length or one must be length 1
 }
 
 \strong{Edge cases:}
 \itemize{
-\item When p = 0 or p = 1, the standard error is undefined (returns NA with warning)
-\item Very small or large p values may produce unstable results
+\item When p = 0 or p = 1, the standard error is 0
+\item Larger sample sizes (n) result in smaller standard errors
 }
 }
 \examples{

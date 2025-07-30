@@ -1,33 +1,29 @@
 test_that("calculate_se_proportion works correctly", {
   # Test single values
   result <- calculate_se_proportion(p = 0.1, n = 100)
-  expected <- 1 / (sqrt(2 * 0.1 * 0.9) * 100)
+  expected <- sqrt(0.1 * (1 - 0.1) / 100)
   expect_equal(result, expected)
   
   # Test multiple values with same length
   p_vals <- c(0.1, 0.2, 0.3)
   n_vals <- c(100, 200, 300)
   result <- calculate_se_proportion(p = p_vals, n = n_vals)
-  expected <- 1 / (sqrt(2 * p_vals * (1 - p_vals)) * n_vals)
+  expected <- sqrt(p_vals * (1 - p_vals) / n_vals)
   expect_equal(result, expected)
   
   # Test broadcasting - single p, multiple n
   result <- calculate_se_proportion(p = 0.1, n = c(100, 200, 300))
-  expected <- 1 / (sqrt(2 * 0.1 * 0.9) * c(100, 200, 300))
+  expected <- sqrt(0.1 * (1 - 0.1) / c(100, 200, 300))
   expect_equal(result, expected)
   
   # Test broadcasting - multiple p, single n
   result <- calculate_se_proportion(p = c(0.1, 0.2, 0.3), n = 100)
-  expected <- 1 / (sqrt(2 * c(0.1, 0.2, 0.3) * (1 - c(0.1, 0.2, 0.3))) * 100)
+  expected <- sqrt(c(0.1, 0.2, 0.3) * (1 - c(0.1, 0.2, 0.3)) / 100)
   expect_equal(result, expected)
 })
 
 test_that("calculate_se_proportion validates inputs correctly", {
-  # Test p values outside (0, 1)
-  expect_error(calculate_se_proportion(p = 0, n = 100),
-               "Zero probability values are not allowed")
-  expect_error(calculate_se_proportion(p = 1, n = 100),
-               "values equal to 1.*not allowed")
+  # Test p values outside [0, 1]
   expect_error(calculate_se_proportion(p = -0.1, n = 100),
                "contains negative values")
   expect_error(calculate_se_proportion(p = 1.1, n = 100),
@@ -42,6 +38,21 @@ test_that("calculate_se_proportion validates inputs correctly", {
   # Test length mismatch
   expect_error(calculate_se_proportion(p = c(0.1, 0.2), n = c(100, 200, 300)),
                "must have the same length")
+})
+
+test_that("calculate_se_proportion handles edge cases correctly", {
+  # Test p = 0 (standard error should be 0)
+  result <- calculate_se_proportion(p = 0, n = 100)
+  expect_equal(result, 0)
+  
+  # Test p = 1 (standard error should be 0)
+  result <- calculate_se_proportion(p = 1, n = 100)
+  expect_equal(result, 0)
+  
+  # Test mixed edge cases
+  result <- calculate_se_proportion(p = c(0, 0.5, 1), n = c(100, 100, 100))
+  expected <- sqrt(c(0, 0.5 * 0.5, 0) / 100)
+  expect_equal(result, expected)
 })
 
 test_that("calculate_z_score works correctly", {

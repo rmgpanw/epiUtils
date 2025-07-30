@@ -1,10 +1,10 @@
 #' Calculate Standard Error for Proportions
 #'
 #' Calculates the standard error for a proportion using the formula:
-#' SE = 1 / (sqrt(2 * p * (1 - p)) * N)
+#' SE = sqrt(p * (1 - p) / n)
 #'
-#' This is commonly used in epidemiological studies to estimate the precision
-#' of prevalence estimates or risk ratios.
+#' This is the standard binomial standard error formula commonly used in
+#' epidemiological studies to estimate the precision of prevalence estimates.
 #'
 #' @param p Numeric vector of proportions (between 0 and 1)
 #' @param n Numeric vector of sample sizes (positive values)
@@ -12,18 +12,19 @@
 #' @return Numeric vector of standard errors
 #'
 #' @details
-#' The standard error quantifies the uncertainty in a proportion estimate.
-#' Smaller standard errors indicate more precise estimates. The formula
-#' assumes a binomial distribution for the underlying count data.
+#' The standard error quantifies the uncertainty in a proportion estimate
+#' based on the binomial distribution. Smaller standard errors indicate 
+#' more precise estimates. This formula assumes that the observed proportion
+#' follows a binomial distribution.
 #'
 #' **Requirements:**
-#' - `p` values must be between 0 and 1 (exclusive for this calculation)
+#' - `p` values must be between 0 and 1 (inclusive)
 #' - `n` values must be positive
 #' - `p` and `n` must have the same length or one must be length 1
 #'
 #' **Edge cases:**
-#' - When p = 0 or p = 1, the standard error is undefined (returns NA with warning)
-#' - Very small or large p values may produce unstable results
+#' - When p = 0 or p = 1, the standard error is 0
+#' - Larger sample sizes (n) result in smaller standard errors
 #'
 #' @examples
 #' # Single proportion
@@ -40,7 +41,7 @@
 #' @export
 calculate_se_proportion <- function(p, n) {
   # Validate inputs
-  validate(p, arg_name = "p", allow_zero = FALSE, allow_one = FALSE)
+  validate(p, arg_name = "p", allow_zero = TRUE, allow_one = TRUE)
   validate_sample_size(n, arg_name = "n", min_size = 1)
   
   # Check length compatibility
@@ -52,17 +53,8 @@ calculate_se_proportion <- function(p, n) {
   }
   
   # Calculate standard error
-  # SE = 1 / (sqrt(2 * p * (1 - p)) * N)
-  se <- 1 / (sqrt(2 * p * (1 - p)) * n)
-  
-  # Check for any issues
-  if (any(!is.finite(se))) {
-    warning_indices <- which(!is.finite(se))
-    cli::cli_warn(c(
-      "!" = "Standard error calculation produced non-finite values at position{?s}: {warning_indices}",
-      "i" = "This typically occurs when p is 0 or 1, or when sample sizes are very small"
-    ))
-  }
+  # SE = sqrt(p * (1 - p) / n)
+  se <- sqrt(p * (1 - p) / n)
   
   return(se)
 }
